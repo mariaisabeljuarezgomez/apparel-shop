@@ -3,94 +3,156 @@
   <!-- Homepage -->
   <url>
     <loc>https://plwgscreativeapparel.com/</loc>
-    <lastmod>2025-09-24</lastmod>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   
   <!-- Main Shop Page -->
   <url>
-    <loc>https://plwgscreativeapparel.com/shop.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/shop.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   
   <!-- Product Pages -->
   <url>
-    <loc>https://plwgscreativeapparel.com/product.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/product.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <!-- Customer Pages -->
   <url>
-    <loc>https://plwgscreativeapparel.com/customer-login.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/customer-login.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://plwgscreativeapparel.com/account.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/account.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <!-- Shopping Cart and Checkout -->
   <url>
-    <loc>https://plwgscreativeapparel.com/cart.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/cart.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://plwgscreativeapparel.com/checkout.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/checkout.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <!-- Order Confirmation Pages -->
   <url>
-    <loc>https://plwgscreativeapparel.com/order-success.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/order-success.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://plwgscreativeapparel.com/order-failure.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/order-failure.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   
   <!-- Information Pages -->
   <url>
-    <loc>https://plwgscreativeapparel.com/about.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/about.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://plwgscreativeapparel.com/contact.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/contact.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   
   <!-- Legal Pages -->
   <url>
-    <loc>https://plwgscreativeapparel.com/privacy-policy.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/privacy-policy.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://plwgscreativeapparel.com/terms-of-service.html</loc>
-    <lastmod>2025-09-24</lastmod>
+    <loc>https://plwgscreativeapparel.com/pages/terms-of-service.html</loc>
+    <lastmod>2025-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
+  </url>
+  
+  <!-- Individual Product Pages -->
+  <url>
+    <loc>https://plwgscreativeapparel.com/pages/products/21-funny-ugh-shirt-printed-design.html</loc>
+    <lastmod>2025-10-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plwgscreativeapparel.com/pages/products/32-motorcycle-grandfather-like-a-regular-grandfather-but-cooler-shirt-printed-desig.html</loc>
+    <lastmod>2025-10-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plwgscreativeapparel.com/pages/products/33-christmas-nightmare-before-coffee-shirt-choose-print-color-printed-design.html</loc>
+    <lastmod>2025-10-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plwgscreativeapparel.com/pages/products/35-led-zeppelin-stairway-to-heaven-guitar-shape-song-lyric-shirt.html</loc>
+    <lastmod>2025-10-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plwgscreativeapparel.com/pages/products/45-gun-n-roses-knockin-on-heaven-s-door-guitar-song-lyric-shirt-printed-design.html</loc>
+    <lastmod>2025-10-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plwgscreativeapparel.com/pages/products/52-don-t-be-a-basic-pitch-baseball-shirt-printed-design.html</loc>
+    <lastmod>2025-10-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plwgscreativeapparel.com/pages/products/62-queen-bohemian-rhapsody-guitar-song-lyric-shirt-printed-design.html</loc>
+    <lastmod>2025-10-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plwgscreativeapparel.com/pages/products/86-breast-cancer-awareness-shirt-quality-printed-design.html</loc>
+    <lastmod>2025-10-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plwgscreativeapparel.com/pages/products/100-kid-s-halloween-nine-ten-never-sleep-again-shirt-printed-design.html</loc>
+    <lastmod>2025-10-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://plwgscreativeapparel.com/pages/products/111-kid-s-raiders-football-shirt-printed-designs.html</loc>
+    <lastmod>2025-10-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>

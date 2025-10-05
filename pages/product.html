@@ -7,7 +7,7 @@
     <meta name="description" content="Custom t-shirt with professional DTG printing. Design your own shirt or choose from our creative collection. High-quality custom t-shirt printing with fast shipping." />
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://plwgscreativeapparel.com/product.html" />
+    <link rel="canonical" href="https://plwgscreativeapparel.com/pages/product.html" />
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -80,6 +80,51 @@
                 }
             }
         }
+        
+        // Utility function to detect search engine crawlers
+        function isSearchEngineCrawler() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const crawlerPatterns = ['googlebot', 'bingbot', 'slurp', 'duckduckbot', 'baiduspider', 'yandexbot', 'facebookexternalhit', 'twitterbot', 'linkedinbot', 'whatsapp', 'telegrambot', 'applebot', 'crawler', 'spider', 'bot'];
+            return crawlerPatterns.some(pattern => userAgent.includes(pattern));
+        }
+
+        // Safe API request wrapper
+        async function safeApiRequest(url, options = {}) {
+            // Skip API calls for crawlers
+            if (isSearchEngineCrawler()) {
+                console.log('Search engine crawler detected, skipping API call:', url);
+                return null;
+            }
+            
+            const token = localStorage.getItem('customerToken');
+            if (!token && (url.includes('/api/cart') || url.includes('/api/customer'))) {
+                console.log('No auth token, skipping API call:', url);
+                return null;
+            }
+            
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token && { 'Authorization': `Bearer ${token}` }),
+                        ...options.headers
+                    }
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    localStorage.removeItem('customerToken');
+                    localStorage.removeItem('customerData');
+                    return null;
+                }
+                
+                return response;
+            } catch (error) {
+                console.log('API request failed (normal for non-authenticated users):', error.message);
+                return null;
+            }
+        }
+        
     </script>
     
     <style>
@@ -2014,7 +2059,7 @@
                     }
                     
                     // Add to cart via API
-                    const response = await fetch('/api/cart/add', {
+                    const response = await safeApiRequest('/api/cart/add', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -2191,7 +2236,7 @@
                     });
                     
                     // Add to cart via API
-                    const response = await fetch('/api/cart/add', {
+                    const response = await safeApiRequest('/api/cart/add', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -2241,7 +2286,7 @@
                     return;
                 }
                 
-                const response = await fetch('/api/cart', {
+                const response = await safeApiRequest('/api/cart', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`

@@ -3,19 +3,19 @@ Allow: /
 
 # Allow all public pages and static assets
 Allow: /index.html
-Allow: /shop.html
-Allow: /customer-login.html
-Allow: /account.html
-Allow: /cart.html
-Allow: /checkout.html
-Allow: /privacy-policy.html
-Allow: /terms-of-service.html
-Allow: /about.html
-Allow: /contact.html
-Allow: /product.html
-Allow: /products/
-Allow: /order-success.html
-Allow: /order-failure.html
+Allow: /pages/shop.html
+Allow: /pages/customer-login.html
+Allow: /pages/account.html
+Allow: /pages/cart.html
+Allow: /pages/checkout.html
+Allow: /pages/privacy-policy.html
+Allow: /pages/terms-of-service.html
+Allow: /pages/about.html
+Allow: /pages/contact.html
+Allow: /pages/product.html
+Allow: /pages/products/
+Allow: /pages/order-success.html
+Allow: /pages/order-failure.html
 
 # Allow static assets
 Allow: /public/
@@ -25,18 +25,18 @@ Allow: /images/
 Allow: /videos/
 
 # Block admin and sensitive pages from search engines
-Disallow: /admin.html
-Disallow: /admin-login.html
-Disallow: /admin-totp-setup.html
-Disallow: /admin-uploads.html
-Disallow: /category-management.html
-Disallow: /customers.html
-Disallow: /orders.html
-Disallow: /product-edit*.html
-Disallow: /product-management.js
-Disallow: /customer-reviews-management.html
-Disallow: /homepage-images.html
-Disallow: /loading.html
+Disallow: /pages/admin.html
+Disallow: /pages/admin-login.html
+Disallow: /pages/admin-totp-setup.html
+Disallow: /pages/admin-uploads.html
+Disallow: /pages/category-management.html
+Disallow: /pages/customers.html
+Disallow: /pages/orders.html
+Disallow: /pages/product-edit*.html
+Disallow: /pages/product-management.js
+Disallow: /pages/customer-reviews-management.html
+Disallow: /pages/homepage-images.html
+Disallow: /pages/loading.html
 
 # Block API endpoints from indexing
 Disallow: /api/

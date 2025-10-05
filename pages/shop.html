@@ -7,7 +7,7 @@
     <meta name="description" content="Shop custom t-shirts online with professional DTG printing. Design your own shirt or browse our creative collection. Custom t-shirt printing services with fast shipping and quality guarantee." />
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://plwgscreativeapparel.com/shop.html" />
+    <link rel="canonical" href="https://plwgscreativeapparel.com/pages/shop.html" />
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1897,6 +1897,14 @@
 
         // Cart counter functionality
         async function updateCartCounter() {
+            // Skip API calls for search engine crawlers
+            const userAgent = navigator.userAgent.toLowerCase();
+            const crawlerPatterns = ['googlebot', 'bingbot', 'slurp', 'duckduckbot', 'baiduspider', 'yandexbot', 'facebookexternalhit', 'twitterbot', 'linkedinbot', 'whatsapp', 'telegrambot', 'applebot', 'crawler', 'spider', 'bot'];
+            if (crawlerPatterns.some(pattern => userAgent.includes(pattern))) {
+                console.log('Search engine crawler detected, skipping cart API call');
+                return;
+            }
+            
             try {
                 const token = localStorage.getItem('customerToken');
                 const cartCounter = document.getElementById('cart-counter');
