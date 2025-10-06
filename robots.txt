@@ -48,9 +48,17 @@ Disallow: /temp*
 Disallow: /mockups/
 Disallow: /etsy_images/
 
-# Block backup files
+# Block backup files (more aggressive)
 Disallow: /*-backup*
 Disallow: /*backup*
+Disallow: /pages/*-backup*
+Disallow: /pages/*backup*
+Disallow: /index-backup*
+
+# Block all test and development files
+Disallow: /tests/
+Disallow: /*test*
+Disallow: /pages/*test*
 
 # Sitemap location
 Sitemap: https://plwgscreativeapparel.com/sitemap.xml
