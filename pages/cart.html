@@ -448,25 +448,10 @@
             }
 
             try {
-                // Check if customer selected local pickup
-                const selectedShippingMethod = sessionStorage.getItem('selectedShippingMethod');
-                const selectedShippingCost = sessionStorage.getItem('selectedShippingCost');
+                // Clear old shipping data from product page (no longer needed)
+                sessionStorage.removeItem('selectedShippingMethod');
+                sessionStorage.removeItem('selectedShippingCost');
                 
-                console.log('🚚 Cart shipping method:', selectedShippingMethod, 'Cost:', selectedShippingCost);
-                
-                // If customer explicitly chose local pickup, return 0
-                if (selectedShippingMethod === 'pickup') {
-                    console.log('🚚 Customer chose local pickup - FREE shipping');
-                    return 0;
-                }
-                
-                // If customer chose standard shipping and we have the cost, use it
-                if (selectedShippingMethod === 'standard' && selectedShippingCost !== null) {
-                    const cost = parseFloat(selectedShippingCost);
-                    console.log('🚚 Customer chose standard shipping:', cost);
-                    return cost;
-                }
-
                 // Call backend API for tiered shipping calculation
                 console.log('🚚 Calling tiered shipping API with items:', cartItems);
                 const token = localStorage.getItem('customerToken');
