@@ -16,14 +16,9 @@ const { body, validationResult } = require('express-validator');
 const paypal = require('@paypal/checkout-server-sdk');
 const { OAuth2Client } = require('google-auth-library');
 
-// Load .env file ONLY for local development
-// Railway provides env vars directly, no .env file needed
-if (process.env.NODE_ENV !== 'production' && !process.env.RAILWAY_ENVIRONMENT) {
-  require('dotenv').config({ silent: true });
-  console.log('📝 Loaded .env file for local development');
-} else {
-  console.log('📝 Using Railway environment variables (production mode)');
-}
+// Railway provides environment variables natively
+// For local development, set env vars in your shell or use Railway CLI
+console.log('🚀 Starting server with environment variables...');
 
 // Initialize Google OAuth client
 const googleClient = new OAuth2Client(

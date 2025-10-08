@@ -37,7 +37,6 @@
     "cloudinary": "^2.7.0",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
     "form-data": "^4.0.4",
@@ -63,10 +62,6 @@
   "engines": {
     "node": ">=14.0.0",
     "npm": ">=6.0.0"
-  },
-  "dotenv": {
-    "debug": false,
-    "radar": false
   },
   "repository": {
     "type": "git",

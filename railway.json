@@ -15,8 +15,7 @@
     "production": {
       "variables": {
         "NODE_ENV": "production",
-        "LOG_LEVEL": "error",
-        "NIXPACKS_NO_DOTENV": "1"
+        "LOG_LEVEL": "error"
       }
     }
   }
