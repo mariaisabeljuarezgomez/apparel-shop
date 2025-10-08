@@ -4063,9 +4063,11 @@ app.options('/api/customer/auth/google', (req, res) => {
 // Handle Google OAuth callback (when user returns from Google)
 app.get('/oauth/callback', async (req, res) => {
   try {
+    logger.info('🔐 OAuth callback received', { query: req.query });
     const { code, state } = req.query;
     
     if (!code) {
+      logger.error('❌ No authorization code in callback');
       return res.status(400).send(`
         <script>
           window.opener.postMessage({error: 'Authorization code not received'}, '*');
@@ -4074,7 +4076,17 @@ app.get('/oauth/callback', async (req, res) => {
       `);
     }
 
+    logger.info('✅ Authorization code received, exchanging for token...');
+
     // Exchange code for access token
+    const redirectUri = `${req.protocol}://${req.get('host')}/oauth/callback`;
+    logger.info('🔄 Token exchange params:', {
+      client_id: process.env.GOOGLE_CLIENT_ID ? 'SET' : 'MISSING',
+      client_secret: process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'MISSING',
+      redirect_uri: redirectUri,
+      has_code: !!code
+    });
+
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -4083,19 +4095,27 @@ app.get('/oauth/callback', async (req, res) => {
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: `${req.protocol}://${req.get('host')}/oauth/callback`
+        redirect_uri: redirectUri
       })
     });
 
     const tokenData = await tokenResponse.json();
+    logger.info('📡 Token response:', { 
+      status: tokenResponse.status,
+      has_access_token: !!tokenData.access_token,
+      error: tokenData.error
+    });
     
     if (!tokenData.access_token) {
-      throw new Error('Failed to get access token');
+      throw new Error(`Token exchange failed: ${tokenData.error || 'No access token'} - ${tokenData.error_description || ''}`);
     }
+
+    logger.info('✅ Access token received, fetching user info...');
 
     // Get user info from Google
     const userResponse = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${tokenData.access_token}`);
     const userData = await userResponse.json();
+    logger.info('✅ User data received:', { email: userData.email });
 
     // Send success message to parent window
     res.send(`
@@ -4110,7 +4130,7 @@ app.get('/oauth/callback', async (req, res) => {
     `);
 
   } catch (error) {
-    console.error('OAuth callback error:', error);
+    logger.error('❌ OAuth callback error:', error);
     res.send(`
       <script>
         window.opener.postMessage({error: 'OAuth failed: ${error.message}'}, '*');
