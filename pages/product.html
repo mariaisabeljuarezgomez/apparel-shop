@@ -2622,34 +2622,6 @@
                             }
                         }
 
-                        // Show/hide color options section based on color_chart_enabled setting (default to true)
-                        const colorSection = Array.from(document.querySelectorAll('.space-y-4')).find(section => {
-                            const h3 = section.querySelector('h3');
-                            return h3 && h3.textContent.includes('Color');
-                        });
-                        
-                        console.log('🔍 Color section found:', colorSection);
-                        console.log('🔍 Product color_chart_enabled:', product.color_chart_enabled);
-                        
-                        // Convert to boolean and handle string values
-                        const colorEnabled = product.color_chart_enabled === true || 
-                                           product.color_chart_enabled === 'true' || 
-                                           product.color_chart_enabled === 1 || 
-                                           product.color_chart_enabled === '1' ||
-                                           product.color_chart_enabled === undefined; // Default to true if not set
-                        
-                        console.log('🔍 Color enabled value:', product.color_chart_enabled, '->', colorEnabled);
-                        
-                        if (colorEnabled) {
-                            // Show color options
-                            console.log('✅ Showing color options');
-                            if (colorSection) colorSection.style.display = 'block';
-                        } else {
-                            // Hide color options
-                            console.log('❌ Hiding color options (explicitly disabled)');
-                            if (colorSection) colorSection.style.display = 'none';
-                        }
-
                         // Color selection change handler
                         colorSelector.addEventListener('change', () => {
                             const selectedOption = colorSelector.options[colorSelector.selectedIndex];
@@ -2662,6 +2634,57 @@
                             }
                         });
                     }
+                } else {
+                    // WORKAROUND: If no colors exist, add N/A option for products without color selection
+                    const colorSelector = document.getElementById('colorSelector');
+                    if (colorSelector) {
+                        colorSelector.innerHTML = '<option value="N/A" selected>N/A - No Color Selection</option>';
+                        selectedColor = 'N/A';
+                        console.log('🎨 No colors available, set to N/A');
+                    }
+                }
+            }
+            
+            // MOVED OUTSIDE: Show/hide color options section based on color_chart_enabled setting (default to true)
+            // This ensures the logic always executes regardless of whether colors exist
+            const colorSection = Array.from(document.querySelectorAll('.space-y-4')).find(section => {
+                const h3 = section.querySelector('h3');
+                return h3 && h3.textContent.includes('Color');
+            });
+            
+            console.log('🔍 Color section found:', colorSection);
+            console.log('🔍 Product color_chart_enabled:', product.color_chart_enabled);
+            
+            // Convert to boolean and handle string values
+            const colorEnabled = product.color_chart_enabled === true || 
+                               product.color_chart_enabled === 'true' || 
+                               product.color_chart_enabled === 1 || 
+                               product.color_chart_enabled === '1' ||
+                               product.color_chart_enabled === undefined; // Default to true if not set
+            
+            console.log('🔍 Color enabled value:', product.color_chart_enabled, '->', colorEnabled);
+            
+            if (colorEnabled) {
+                // Show color options
+                console.log('✅ Showing color options');
+                if (colorSection) {
+                    colorSection.style.display = 'block';
+                    colorSection.classList.remove('hidden');
+                }
+            } else {
+                // Hide color options AND set N/A as workaround
+                console.log('❌ Hiding color options (explicitly disabled)');
+                if (colorSection) {
+                    colorSection.style.display = 'none';
+                    colorSection.classList.add('hidden');
+                }
+                
+                // WORKAROUND: Set color to N/A when color chart is disabled
+                const colorSelector = document.getElementById('colorSelector');
+                if (colorSelector) {
+                    colorSelector.innerHTML = '<option value="N/A" selected>N/A - No Color Selection</option>';
+                    selectedColor = 'N/A';
+                    console.log('🎨 Color chart disabled, set to N/A');
                 }
             }
             
