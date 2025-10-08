@@ -65,7 +65,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- Preload critical hero image -->
-    <link rel="preload" as="image" href="https://res.cloudinary.com/dfistxzb9/image/upload/f_auto,q_auto,w_800,h_600,c_fit/v1758498103/plwg-creative-apparel/mockups/plwg-creative-apparel/mockups/covergirl2.webp">
+    <link rel="preload" as="image" href="https://res.cloudinary.com/dfistxzb9/image/upload/f_auto,q_auto,w_1800,h_1800,c_fit/v1758498103/plwg-creative-apparel/mockups/plwg-creative-apparel/mockups/covergirl2.webp">
     
     <!-- Preconnect to external resources -->
     <link rel="preconnect" href="https://res.cloudinary.com">
@@ -1118,6 +1118,15 @@
         function navigateToCart() {
             window.location.href = '/pages/cart.html';
         }
+
+        // Attach cart navigation to buttons (CSP-compliant)
+        document.addEventListener('DOMContentLoaded', () => {
+            const cartButtons = document.querySelectorAll('[onclick="navigateToCart()"]');
+            cartButtons.forEach(btn => {
+                btn.removeAttribute('onclick');
+                btn.addEventListener('click', navigateToCart);
+            });
+        });
 
         // Dynamic content functions (preserved from original)
         async function fetchPublicProducts(){
