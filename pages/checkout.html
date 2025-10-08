@@ -1084,9 +1084,9 @@
             // Add event listener to state field to recalculate tax when changed
             const stateField = document.getElementById('state');
             if (stateField) {
-                stateField.addEventListener('change', () => {
+                stateField.addEventListener('change', async () => {
                     if (orderData && orderData.items) {
-                        displayOrderSummary(orderData.items);
+                        await displayOrderSummary(orderData.items);
                     }
                 });
             }
@@ -1262,7 +1262,7 @@
                             quantity: parseInt(item.quantity || 1)
                         }));
                         console.log('🛒 Cart items stored for order success:', cartItemsForOrder);
-                        displayOrderSummary(cartData.items);
+                        await displayOrderSummary(cartData.items);
                     } else {
                         console.log('⚠️ Cart is empty, redirecting to cart page');
                         console.log('📦 Cart data structure:', cartData);
@@ -1417,7 +1417,7 @@
         }
 
         // Display order summary
-        function displayOrderSummary(cartData) {
+        async function displayOrderSummary(cartData) {
             console.log('🛒 Displaying order summary with cart data:', cartData);
             
             const orderItemsContainer = document.getElementById('order-items');
@@ -1458,21 +1458,36 @@
 
             orderItemsContainer.innerHTML = orderItemsHTML;
 
-            // Get shipping method from sessionStorage (set on product page)
-            const selectedShipping = sessionStorage.getItem('selectedShippingMethod') || 'standard';
-            let shipping = 0;
+            // Calculate tiered shipping using backend API
+            console.log('🚚 CHECKOUT: Calling tiered shipping API...');
+            let shipping = 4.50; // Default fallback
             
-            // Calculate shipping based on selected method
-            const selectedShippingCost = sessionStorage.getItem('selectedShippingCost');
-            if (selectedShippingCost) {
-                shipping = parseFloat(selectedShippingCost);
-            } else if (selectedShipping === 'local-pickup') {
-                shipping = 0; // FREE
-            } else if (selectedShipping === 'standard') {
-                shipping = 4.50; // Standard shipping
-            } else {
-                // Fallback to free over $50, otherwise $5.99
-                shipping = subtotal >= 50 ? 0 : 5.99;
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/cart/calculate-shipping', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        items: cartData.map(item => ({
+                            product_id: item.product_id,
+                            quantity: item.quantity
+                        }))
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    shipping = parseFloat(data.shipping) || 4.50;
+                    console.log('🚚 CHECKOUT: Tiered shipping calculated:', shipping);
+                } else {
+                    console.warn('⚠️ CHECKOUT: Shipping API failed, using fallback:', shipping);
+                }
+            } catch (error) {
+                console.error('❌ CHECKOUT: Error calculating shipping:', error);
+                console.log('🚚 CHECKOUT: Using fallback shipping:', shipping);
             }
             
             // Get tax rate based on shipping address state
