@@ -623,11 +623,6 @@
                                 </div>
                             </div>
                         </div>
-                                <div id="search-categories" class="space-y-2">
-                                    <div class="text-gray-500 text-sm">Loading categories...</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -2738,34 +2733,11 @@
             }
         });
 
-        // Load dynamic categories for search dropdown
+        // Load dynamic categories for search dropdown - REMOVED
+        // Category dropdown removed as it was redundant with sidebar filters
         async function loadShopCategories() {
-            try {
-                const response = await fetch('/api/categories/top');
-                const categories = await response.json();
-                
-                const categoriesContainer = document.getElementById('search-categories');
-                if (categoriesContainer && categories.length > 0) {
-                    categoriesContainer.innerHTML = categories.slice(0, 4).map(category => 
-                        `<button class="flex items-center space-x-3 w-full text-left hover:bg-surface-light p-2 rounded" onclick="filterByCategory('${category.category}')">
-                            <div class="w-8 h-8 rounded bg-accent bg-opacity-20 flex items-center justify-center">
-                                <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2"/>
-                                </svg>
-                            </div>
-                            <span class="text-text-primary">${category.category}</span>
-                        </button>`
-                    ).join('');
-                } else if (categoriesContainer) {
-                    categoriesContainer.innerHTML = '<div class="text-gray-500 text-sm">No categories available</div>';
-                }
-            } catch (error) {
-                console.error('Error loading categories:', error);
-                const categoriesContainer = document.getElementById('search-categories');
-                if (categoriesContainer) {
-                    categoriesContainer.innerHTML = '<div class="text-gray-500 text-sm">Error loading categories</div>';
-                }
-            }
+            // Function kept for compatibility but does nothing
+            console.log('Category dropdown removed - using sidebar filters instead');
         }
 
         // Initialize search functionality
@@ -2796,6 +2768,17 @@
                     }
                 });
             }
+            
+            // Add click handlers to search suggestions
+            const searchSuggestions = document.querySelectorAll('[data-search]');
+            searchSuggestions.forEach(suggestion => {
+                suggestion.addEventListener('click', () => {
+                    const searchTerm = suggestion.getAttribute('data-search');
+                    if (searchTerm) {
+                        performSearch(searchTerm);
+                    }
+                });
+            });
         }
 
         // Perform search
@@ -2809,10 +2792,10 @@
             }
         }
 
-        // Filter by category
+        // Filter by category - REMOVED
+        // Category filtering now handled by sidebar checkboxes only
         function filterByCategory(category) {
-            console.log('Filtering by category:', category);
-            window.location.href = `shop.html?category=${encodeURIComponent(category)}`;
+            console.log('Category filtering removed - use sidebar filters instead');
         }
 
         // Clear search
