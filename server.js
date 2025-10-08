@@ -4952,6 +4952,27 @@ async function calculateTieredShipping(cartItems) {
   }
 }
 
+// Calculate shipping for cart items
+app.post('/api/cart/calculate-shipping', authenticateCustomer, async (req, res) => {
+  if (!pool) {
+    return res.status(500).json({ error: 'Database not available' });
+  }
+
+  try {
+    const { items } = req.body;
+    
+    if (!items || items.length === 0) {
+      return res.json({ shipping: 0 });
+    }
+
+    const shipping = await calculateTieredShipping(items);
+    res.json({ shipping });
+  } catch (error) {
+    logger.error('Error calculating shipping:', error);
+    res.status(500).json({ error: 'Failed to calculate shipping' });
+  }
+});
+
 // Get customer's cart
 app.get('/api/cart', authenticateCustomer, async (req, res) => {
   if (!pool) {

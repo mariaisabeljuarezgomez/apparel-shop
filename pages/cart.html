@@ -467,27 +467,26 @@
                     return cost;
                 }
 
-                // Fallback: Get shipping data from products (for backwards compatibility)
-                const productIds = [...new Set(cartItems.map(item => item.product_id))];
-                const productShippingData = [];
+                // Call backend API for tiered shipping calculation
+                const token = localStorage.getItem('customerToken');
+                const shippingResponse = await fetch('/api/cart/calculate-shipping', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ items: cartItems })
+                });
 
-                for (const productId of productIds) {
-                    const response = await fetch(`/api/products/public/${productId}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        const product = data.product || data;
-                        productShippingData.push({
-                            id: productId,
-                            shipping_cost: parseFloat(product.shipping_cost) || 4.50,
-                            local_pickup_enabled: product.local_pickup_enabled !== false
-                        });
-                    }
+                if (shippingResponse.ok) {
+                    const shippingData = await shippingResponse.json();
+                    console.log('🚚 Tiered shipping cost from API:', shippingData.shipping);
+                    return shippingData.shipping;
                 }
 
-                // Use the highest shipping cost as default (ONE shipping fee per order)
-                const highestShippingCost = Math.max(...productShippingData.map(p => p.shipping_cost));
-                console.log('🚚 Fallback shipping cost:', highestShippingCost);
-                return highestShippingCost;
+                // Fallback if API fails
+                console.log('🚚 API failed, using fallback');
+                return 4.50;
 
             } catch (error) {
                 console.error('Error calculating shipping cost:', error);
