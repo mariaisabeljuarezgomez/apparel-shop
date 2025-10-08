@@ -468,6 +468,7 @@
                 }
 
                 // Call backend API for tiered shipping calculation
+                console.log('🚚 Calling tiered shipping API with items:', cartItems);
                 const token = localStorage.getItem('customerToken');
                 const shippingResponse = await fetch('/api/cart/calculate-shipping', {
                     method: 'POST',
@@ -478,14 +479,19 @@
                     body: JSON.stringify({ items: cartItems })
                 });
 
+                console.log('🚚 API Response status:', shippingResponse.status);
+                
                 if (shippingResponse.ok) {
                     const shippingData = await shippingResponse.json();
                     console.log('🚚 Tiered shipping cost from API:', shippingData.shipping);
                     return shippingData.shipping;
+                } else {
+                    const errorText = await shippingResponse.text();
+                    console.error('🚚 API failed with status:', shippingResponse.status, 'Error:', errorText);
                 }
 
                 // Fallback if API fails
-                console.log('🚚 API failed, using fallback');
+                console.log('🚚 Using fallback shipping: 4.50');
                 return 4.50;
 
             } catch (error) {
