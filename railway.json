@@ -1,7 +1,8 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "buildCommand": "npm install"
   },
   "deploy": {
     "startCommand": "npm run start",
@@ -14,7 +15,8 @@
     "production": {
       "variables": {
         "NODE_ENV": "production",
-        "LOG_LEVEL": "error"
+        "LOG_LEVEL": "error",
+        "NIXPACKS_NO_DOTENV": "1"
       }
     }
   }
