@@ -1463,7 +1463,8 @@
             let shipping = 4.50; // Default fallback
             
             try {
-                const token = localStorage.getItem('token');
+                const token = localStorage.getItem('customerToken');
+                console.log('🔑 CHECKOUT: Using customerToken for shipping API');
                 const response = await fetch('/api/cart/calculate-shipping', {
                     method: 'POST',
                     headers: {
@@ -1478,12 +1479,13 @@
                     })
                 });
                 
+                console.log('📡 CHECKOUT: Shipping API response status:', response.status);
                 if (response.ok) {
                     const data = await response.json();
                     shipping = parseFloat(data.shipping) || 4.50;
-                    console.log('🚚 CHECKOUT: Tiered shipping calculated:', shipping);
+                    console.log('✅ CHECKOUT: Tiered shipping calculated:', shipping);
                 } else {
-                    console.warn('⚠️ CHECKOUT: Shipping API failed, using fallback:', shipping);
+                    console.warn('⚠️ CHECKOUT: Shipping API failed with status', response.status, '- using fallback:', shipping);
                 }
             } catch (error) {
                 console.error('❌ CHECKOUT: Error calculating shipping:', error);
