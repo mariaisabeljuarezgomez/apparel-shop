@@ -825,6 +825,7 @@ async function initializeDatabase() {
       await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS custom_lyrics_char_limit INTEGER DEFAULT 250`);
       await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS custom_lyrics_question TEXT`);
       await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS shipping_cost DECIMAL(10,2) DEFAULT 4.50`);
+      await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS additional_item_shipping DECIMAL(10,2)`);
       await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS local_pickup_enabled BOOLEAN DEFAULT true`);
       await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS size_chart JSON`);
       await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS specs_notes TEXT`);
@@ -5668,6 +5669,7 @@ const validateProduct = [
   body('custom_lyrics_question').optional().isString().isLength({ max: 500 }).withMessage('Custom lyrics question must be less than 500 characters'),
   body('specifications.brand_preference').optional().isString().withMessage('Brand preference must be a string'),
   body('shipping_cost').optional().isFloat({ min: 0 }).withMessage('Shipping cost must be a positive number'),
+  body('additional_item_shipping').optional().isFloat({ min: 0 }).withMessage('Additional item shipping must be a positive number'),
   body('local_pickup_enabled').optional().isBoolean().withMessage('Local pickup enabled must be a boolean'),
   (req, res, next) => {
     const errors = validationResult(req);
@@ -5713,6 +5715,7 @@ app.post('/api/admin/products', authenticateToken, validateProduct, async (req, 
       custom_lyrics_char_limit,
       custom_lyrics_question,
       shipping_cost,
+      additional_item_shipping,
       local_pickup_enabled,
       size_chart,
       size_chart_enabled,
@@ -5798,9 +5801,9 @@ app.post('/api/admin/products', authenticateToken, validateProduct, async (req, 
         featured_order, size_pricing, custom_birthday_enabled, custom_birthday_required, 
         custom_birthday_fields, custom_birthday_labels, custom_birthday_char_limit, 
         custom_lyrics_enabled, custom_lyrics_required, custom_lyrics_fields, custom_lyrics_labels, 
-        custom_lyrics_char_limit, shipping_cost, local_pickup_enabled, size_chart, 
+        custom_lyrics_char_limit, shipping_cost, additional_item_shipping, local_pickup_enabled, size_chart, 
         custom_birthday_question, custom_lyrics_question, size_chart_enabled, color_chart_enabled
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48)
       RETURNING *
     `, [
       nextId, // id
@@ -5844,6 +5847,7 @@ app.post('/api/admin/products', authenticateToken, validateProduct, async (req, 
       custom_lyrics_labels || '{"artist_band": "Artist or Band Name", "song_name": "Song Name", "song_lyrics": "Song Lyrics (Optional)"}', // custom_lyrics_labels
       custom_lyrics_char_limit || 250, // custom_lyrics_char_limit
       shipping_cost || 4.50, // shipping_cost
+      req.body.additional_item_shipping || null, // additional_item_shipping (null uses env default)
       local_pickup_enabled !== false, // local_pickup_enabled
       JSON.stringify(size_chart || { // size_chart
         S: { chest: '18', length: '28' },
@@ -5937,6 +5941,7 @@ app.put('/api/admin/products/:id', authenticateToken, validateProduct, async (re
       custom_lyrics_char_limit,
       custom_lyrics_question,
       shipping_cost,
+      additional_item_shipping,
       local_pickup_enabled,
       size_chart,
       size_chart_enabled,
@@ -6098,9 +6103,9 @@ app.put('/api/admin/products/:id', authenticateToken, validateProduct, async (re
         size_stock = $16, track_inventory = $17, brand_preference = $18, specs_notes = $19,
         custom_birthday_enabled = $20, custom_birthday_required = $21, custom_birthday_fields = $22, custom_birthday_labels = $23, custom_birthday_char_limit = $24, custom_birthday_question = $25,
         custom_lyrics_enabled = $26, custom_lyrics_required = $27, custom_lyrics_fields = $28, custom_lyrics_labels = $29, custom_lyrics_char_limit = $30, custom_lyrics_question = $31,
-        shipping_cost = $32, local_pickup_enabled = $33, size_chart = $34, size_chart_enabled = $35, color_chart_enabled = $36,
+        shipping_cost = $32, additional_item_shipping = $33, local_pickup_enabled = $34, size_chart = $35, size_chart_enabled = $36, color_chart_enabled = $37,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $37
+      WHERE id = $38
       RETURNING *
     `, [
       name, description, price, original_price, final_image_url, finalCategory,
@@ -6119,7 +6124,9 @@ app.put('/api/admin/products/:id', authenticateToken, validateProduct, async (re
       custom_lyrics_labels || '{"artist_band": "Artist or Band Name", "song_name": "Song Name", "song_lyrics": "Song Lyrics (Optional)"}',
       custom_lyrics_char_limit || 250,
       custom_lyrics_question || '',
-      shipping_cost || 4.50, local_pickup_enabled !== false,
+      shipping_cost || 4.50, 
+      additional_item_shipping || null, // null uses env default
+      local_pickup_enabled !== false,
       JSON.stringify(size_chart || {
         S: { chest: '18', length: '28' },
         M: { chest: '20', length: '29' },
