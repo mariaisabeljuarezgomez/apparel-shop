@@ -4898,6 +4898,60 @@ function calculateTierProgress(points, currentTier) {
 // CART MANAGEMENT ENDPOINTS
 // =============================================================================
 
+// Calculate tiered shipping (Etsy-style)
+async function calculateTieredShipping(cartItems) {
+  try {
+    const defaultAdditionalShipping = parseFloat(process.env.ADDITIONAL_ITEM_SHIPPING) || 4.00;
+    
+    // Get product details including shipping costs
+    const productIds = [...new Set(cartItems.map(item => item.product_id))];
+    const productsResult = await pool.query(`
+      SELECT id, shipping_cost, additional_item_shipping 
+      FROM products 
+      WHERE id = ANY($1)
+    `, [productIds]);
+    
+    const productShippingMap = {};
+    productsResult.rows.forEach(p => {
+      productShippingMap[p.id] = {
+        first: parseFloat(p.shipping_cost) || 4.50,
+        additional: p.additional_item_shipping ? parseFloat(p.additional_item_shipping) : defaultAdditionalShipping
+      };
+    });
+    
+    // Expand cart items by quantity (each item counts separately)
+    const expandedItems = [];
+    cartItems.forEach(item => {
+      const shippingCosts = productShippingMap[item.product_id] || { first: 4.50, additional: defaultAdditionalShipping };
+      for (let i = 0; i < item.quantity; i++) {
+        expandedItems.push({
+          product_id: item.product_id,
+          firstItemCost: shippingCosts.first,
+          additionalCost: shippingCosts.additional
+        });
+      }
+    });
+    
+    // Sort by first item cost (highest first) to charge most expensive shipping first
+    expandedItems.sort((a, b) => b.firstItemCost - a.firstItemCost);
+    
+    // Calculate total: first item gets full shipping, rest get additional rate
+    let totalShipping = 0;
+    if (expandedItems.length > 0) {
+      totalShipping = expandedItems[0].firstItemCost; // First item
+      for (let i = 1; i < expandedItems.length; i++) {
+        totalShipping += expandedItems[i].additionalCost; // Additional items
+      }
+    }
+    
+    return parseFloat(totalShipping.toFixed(2));
+  } catch (error) {
+    logger.error('Error calculating tiered shipping:', error);
+    // Fallback to simple calculation
+    return 5.99;
+  }
+}
+
 // Get customer's cart
 app.get('/api/cart', authenticateCustomer, async (req, res) => {
   if (!pool) {
@@ -6396,7 +6450,7 @@ app.post('/api/paypal/create-order', authenticateCustomer, async (req, res) => {
 
     const cartItems = cartResult.rows;
     const subtotal = cartItems.reduce((sum, item) => sum + (item.quantity * parseFloat(item.unit_price)), 0);
-    const shipping = subtotal >= 50 ? 0 : 5.99;
+    const shipping = await calculateTieredShipping(cartItems);
     const tax = subtotal * 0.085; // 8.5% tax
     const total = subtotal + shipping + tax;
 
