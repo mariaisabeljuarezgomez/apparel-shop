@@ -491,8 +491,15 @@
                             <div>
                                 <label class="block text-sm text-text-secondary mb-1">Shipping Cost ($)</label>
                                 <input type="number" id="shipping-cost" step="0.01" min="0" class="w-full px-3 py-2 bg-surface border border-surface-light rounded text-text-primary focus:border-accent focus:outline-none" placeholder="4.50" value="4.50">
-                                <p class="text-xs text-text-secondary mt-1">Default: $4.50 for shirts, $10.50 for hoodies</p>
+                                <p class="text-xs text-text-secondary mt-1">First item shipping cost</p>
                             </div>
+                            <div>
+                                <label class="block text-sm text-text-secondary mb-1">Additional Item Shipping ($)</label>
+                                <input type="number" id="additional-item-shipping" step="0.01" min="0" class="w-full px-3 py-2 bg-surface border border-surface-light rounded text-text-primary focus:border-accent focus:outline-none" placeholder="4.00">
+                                <p class="text-xs text-text-secondary mt-1">Optional - Leave blank to use default ($4.00)</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 mt-4">
                             <div>
                                 <label class="block text-sm text-text-secondary mb-1">Local Pickup Option</label>
                                 <div class="flex items-center space-x-2 mt-2">
@@ -1431,6 +1438,7 @@
                     brand_preference: document.getElementById('spec-brand-preference').value
                 },
                 shipping_cost: parseFloat(document.getElementById('shipping-cost').value) || 4.50,
+                additional_item_shipping: document.getElementById('additional-item-shipping').value ? parseFloat(document.getElementById('additional-item-shipping').value) : null,
                 local_pickup_enabled: document.getElementById('local-pickup-enabled').checked,
                 features: {
                     double_stitched: document.getElementById('feature-double-stitched').checked,
@@ -1652,6 +1660,7 @@
                     brand_preference: document.getElementById('spec-brand-preference').value
                 },
                 shipping_cost: parseFloat(document.getElementById('shipping-cost').value) || 4.50,
+                additional_item_shipping: document.getElementById('additional-item-shipping').value ? parseFloat(document.getElementById('additional-item-shipping').value) : null,
                 local_pickup_enabled: document.getElementById('local-pickup-enabled').checked,
                 features: {
                     double_stitched: document.getElementById('feature-double-stitched').checked,
