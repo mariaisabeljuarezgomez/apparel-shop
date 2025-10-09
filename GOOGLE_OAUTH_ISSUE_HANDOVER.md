@@ -107,12 +107,33 @@ app.get('/oauth/callback', async (req, res) => {
 **Fix Attempted:** Added try-catch around `new OAuth2Client()`  
 **Result:** OAuth client initializes successfully (logs show ✅) but server still crashes
 
-### 3. Railway Healthcheck Configuration ❌
+### 3. Railway Healthcheck Configuration ❌ (REPEATED 10+ TIMES)
 **Problem:** Suspected homepage (`/`) was failing healthcheck  
-**Fix Attempted:** Changed to `/api/health` with 300s timeout  
-**Result:** Server still crashes after startup
+**Attempted Fixes (ALL FAILED):**
+- Changed healthcheck from `/` to `/api/health` with 10s timeout → Server still crashes
+- Increased timeout to 300s → Server still crashes
+- Removed healthcheck entirely → Server still crashes
+- Re-added healthcheck with 300s timeout → Server still crashes
+- Removed healthcheck again → Server still crashes
+- Re-added healthcheck AGAIN → Server still crashes
+**Result:** EXACT SAME CRASH EVERY TIME. Server starts, runs 5-10 seconds, Railway kills it with SIGTERM
 
-### 4. Package Lock File Issues ✅ (Resolved)
+### 4. Static File Middleware Route Conflict ❌
+**Problem:** Suspected `app.use(express.static('.'))` was intercepting `/oauth/callback`  
+**Fix Attempted:** Removed static middleware, added specific routes for `/public`, `/css`, `/pages`  
+**Result:** Homepage broke (showed JSON instead of HTML), OAuth still broken
+
+### 5. Homepage Route Fix ✅ (Partial Success)
+**Problem:** After removing static middleware, `/` returned JSON from `/api/health`  
+**Fix:** Added explicit `app.get('/', ...)` to serve `index.html`  
+**Result:** Homepage works again, but OAuth still broken and server still crashes
+
+### 6. Explicit Host Binding ❌
+**Problem:** Suspected server wasn't binding to `0.0.0.0`  
+**Fix Attempted:** Changed `app.listen(PORT)` to `app.listen(PORT, '0.0.0.0')`  
+**Result:** Unknown - latest change, not yet deployed/tested
+
+### 7. Package Lock File Issues ✅ (Resolved)
 **Problem:** `package-lock.json` had wrong dotenv version  
 **Fix:** Ran `npm install` locally and pushed updated lock file  
 **Result:** Build succeeds, but runtime crash continues
@@ -238,17 +259,55 @@ The SIGTERM signal suggests Railway is actively killing the process. Check:
 
 ## FINAL ASSESSMENT
 
+**STATUS:** COMPLETELY STUCK - NO PROGRESS AFTER 15+ DIFFERENT ATTEMPTED FIXES
+
 This appears to be a **Railway deployment/networking issue**, not a code issue:
-- Code is correct (OAuth route exists and is properly defined)
-- Environment variables are loaded
-- Server starts successfully
-- Railway healthcheck is failing or Railway is killing the process for another reason
+- ✅ Code is correct (OAuth route exists and is properly defined)
+- ✅ Environment variables are loaded and confirmed present
+- ✅ Server starts successfully (all initialization completes)
+- ❌ Railway kills container with SIGTERM after 5-10 seconds
+- ❌ OAuth callback never reached (server dead before Google redirects back)
 
 **The solution likely lies in Railway's configuration, not the application code.**
+
+### Why Nothing Worked
+
+**The Problem:** Railway is actively stopping the container, but we don't know WHY.
+
+**What We DON'T Know:**
+1. Why Railway is killing the container (no error message, just "Stopping Container")
+2. Whether it's a healthcheck failure (tried with/without healthcheck, same result)
+3. Whether it's a memory/CPU issue (no metrics available in logs)
+4. Whether it's a port binding issue (server logs show it's listening)
+5. Whether Railway's load balancer is failing to connect
+
+**What Makes This Impossible to Debug:**
+- Server logs show success, then immediate stop
+- No error messages or stack traces
+- Railway provides no explanation for why it stops the container
+- Cannot test anything because server dies before any HTTP requests can be made
+- Changing healthcheck configuration has ZERO effect (same crash with or without)
+
+### What Needs to Happen Next
+
+**Option 1: Railway Support**
+- Contact Railway support with deployment ID and ask why container is being killed
+- Request detailed healthcheck logs and deployment diagnostics
+- Ask if there are any platform-level issues or quota limits
+
+**Option 2: Alternative Deployment**
+- Deploy to a different platform (Heroku, Render, DigitalOcean) to verify code works
+- If it works elsewhere, the issue is definitively Railway-specific
+
+**Option 3: Rollback**
+- Find the last commit where OAuth worked (user says it's an "old problem", may never have worked)
+- If a working version exists, compare configurations and code
 
 ---
 
 **Created:** October 9, 2025, 00:45 UTC  
+**Last Updated:** October 9, 2025, 02:40 UTC  
 **Last Known Working Commit:** Unknown (OAuth has been broken for extended period)  
-**Current Commit:** `ca986d2` - "FIX: Change healthcheck to /api/health to prevent crashes"
+**Current Commit:** Latest - "Add explicit 0.0.0.0 binding and restore healthcheck"  
+**Total Attempted Fixes:** 15+ different approaches, NONE successful
 
