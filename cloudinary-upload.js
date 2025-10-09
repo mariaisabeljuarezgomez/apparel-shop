@@ -1,5 +1,5 @@
 const cloudinary = require('cloudinary').v2;
-require('dotenv').config();
+// Note: dotenv is loaded in server.js before this module is required
 
 // Configure Cloudinary - Support both individual credentials and CLOUDINARY_URL
 if (process.env.CLOUDINARY_URL) {
