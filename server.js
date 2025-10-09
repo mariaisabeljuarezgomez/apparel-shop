@@ -16,9 +16,10 @@ const { body, validationResult } = require('express-validator');
 const paypal = require('@paypal/checkout-server-sdk');
 const { OAuth2Client } = require('google-auth-library');
 
-// Railway provides environment variables natively
-// For local development, set env vars in your shell or use Railway CLI
-console.log('🚀 Starting server with environment variables...');
+// Load environment variables
+// Railway will have them pre-set, local dev will load from .env
+require('dotenv').config();
+console.log('🚀 Starting server...');
 
 // Initialize Google OAuth client
 const googleClient = new OAuth2Client(
