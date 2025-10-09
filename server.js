@@ -456,8 +456,11 @@ app.use(helmet({
   referrerPolicy: { policy: "strict-origin-when-cross-origin" }
 }));
 
-app.use(express.static('.'));
+// DISABLED: app.use(express.static('.')); - This was causing OAuth routes to 404
+// Static files should be served from specific directories only
 app.use('/public', express.static('public'));
+app.use('/css', express.static('css'));
+app.use('/pages', express.static('pages'));
 // Removed etsy_images static route - now using Cloudinary for image hosting
 app.use('/favicon.ico', express.static('public/favicon.ico'));
 
