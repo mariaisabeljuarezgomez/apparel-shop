@@ -3289,10 +3289,6 @@ code, .mono {
 }
 
 @media (min-width: 640px){
-  .sm\:inline{
-    display: inline;
-  }
-
   .sm\:h-4{
     height: 1rem;
   }

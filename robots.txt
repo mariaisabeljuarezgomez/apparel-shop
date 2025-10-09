@@ -10,6 +10,7 @@ Allow: /pages/cart.html
 Allow: /pages/checkout.html
 Allow: /pages/privacy-policy.html
 Allow: /pages/terms-of-service.html
+Allow: /pages/return-policy.html
 Allow: /pages/about.html
 Allow: /pages/contact.html
 Allow: /pages/product.html

@@ -5,24 +5,19 @@
 **Date:** October 9, 2025
 **Railway Project:** PLWGSCREATIVEAPPAREL
 **Service:** plwgscreativeapparel-production
-**Issue:** Container crashes immediately after startup, Google OAuth login fails
+**Issue:** Container crashes after startup, Google OAuth fails
 
 ---
 
 ## **PROBLEM SUMMARY**
 
-Our Node.js application container is being killed by Railway after 5-10 seconds with a SIGTERM signal. The server starts successfully (all initialization completes), but Railway terminates the process before any HTTP requests can be processed.
+Node.js container killed by Railway after 5-10 seconds with SIGTERM. Server starts successfully but Railway terminates it before HTTP requests can be processed.
 
-**Impact:**
-- Google OAuth login completely broken (users get 404 on callback)
-- Website becomes unresponsive
-- Infinite crash loop
+**Impact:** Google OAuth login completely broken (404 on callback), website unresponsive.
 
 ---
 
-## **DETAILED SYMPTOMS**
-
-### **Railway Logs Show:**
+## **RAILWAY LOGS**
 ```
 🚀 Starting server...
 ✅ Google OAuth client initialized
@@ -35,29 +30,11 @@ Stopping Container    ← Railway kills it here
 npm error signal SIGTERM
 ```
 
-### **Browser Console Shows:**
-```
-🔍 Starting Google Sign-In initialization...
-✅ Google script loaded
-🔍 Fetching client ID from server...
-✅ Client ID fetched: Yes
-🔘 Google login button clicked
-✅ Using popup method (GSI has CORS issues)
-🔍 googleOAuthPopup() function called
-🔍 Opening popup with URL: https://accounts.google.com/oauth/authorize?client_id=340277902902-k60pgdt6l051l7kbefvu6rto1tlncv6t.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fplwgscreativeapparel.com%2Foauth%2Fcallback&scope=openid%20email%20profile&response_type=code&state=7gxey862xv2
-🔍 Popup object: Window about:blank
-```
-
-**The popup shows "about:blank" because the server is dead when Google redirects back.**
-
 ---
 
-## **TECHNICAL CONFIGURATION**
-
-### **Railway Service Settings:**
+## **TECHNICAL CONFIG**
 ```json
 {
-  "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
     "buildCommand": "npm install && npm run build:css"
@@ -65,242 +42,128 @@ npm error signal SIGTERM
   "deploy": {
     "startCommand": "node server.js",
     "healthcheckPath": "/api/health",
-    "healthcheckTimeout": 300,
-    "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
-  },
-  "environments": {
-    "production": {
-      "variables": {
-        "NODE_ENV": "production",
-        "LOG_LEVEL": "error"
-      }
-    }
+    "healthcheckTimeout": 300
   }
 }
 ```
 
-### **Application Code (server.js):**
+**Server Code:**
 ```javascript
-// Server startup
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ SERVER RUNNING AND LISTENING on 0.0.0.0:${PORT}`);
-  console.log(`🌍 Server is now accepting HTTP connections`);
+  console.log(`✅ SERVER RUNNING on 0.0.0.0:${PORT}`);
 });
 
-// OAuth callback route
 app.get('/oauth/callback', async (req, res) => {
-  try {
-    logger.info('🔐 OAuth callback received', { query: req.query });
-    // Token exchange logic...
-  }
+  // OAuth logic
 });
 
-// Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+  res.json({ status: 'healthy' });
 });
 ```
 
-### **Environment Variables:**
-✅ All 40+ required variables are confirmed present in Railway:
-- `DATABASE_URL`
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
-- `PAYPAL_CLIENT_ID`
-- `PAYPAL_CLIENT_SECRET`
-- `JWT_SECRET`
-- All others
+**Environment:** All 40+ variables confirmed present in Railway.
 
 ---
 
-## **WHAT HAPPENS WHEN WE TRY TO ACCESS THE SITE**
+## **ATTEMPTED FIXES (15+)**
 
-### **Before Fix Attempts:**
-- `/` returned JSON from `/api/health` instead of HTML
-- All routes returned 404
-
-### **After Adding Explicit Route:**
-```javascript
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-```
-- Homepage works correctly
-- Other static routes work
-- **OAuth callback still fails because container dies**
-
----
-
-## **ALL ATTEMPTED FIXES (15+ Approaches)**
-
-### **1. Healthcheck Configuration** ❌ (Tried 6+ times)
-**Problem:** Suspected healthcheck failure causing container kill
-
-**Attempts:**
-- Changed `healthcheckPath` from `/` to `/api/health` with 10s timeout
+### **Healthcheck Config** ❌ (Tried 6+ times)
+- Changed from `/` to `/api/health`
 - Increased timeout to 300s
 - Removed healthcheck entirely
-- Re-added healthcheck with 300s timeout
-- Removed healthcheck again
+- **Result:** Same crash every time
 
-**Result:** **EXACT SAME CRASH** every time. Container dies after 5-10 seconds regardless of healthcheck configuration.
-
-### **2. Static File Middleware** ❌
-**Problem:** Suspected `app.use(express.static('.'))` intercepting `/oauth/callback`
-
-**Fix Attempted:**
-- Removed catch-all static middleware
+### **Static Middleware** ❌
+- Removed `app.use(express.static('.'))`
 - Added specific routes for `/public`, `/css`, `/pages`
+- **Result:** Homepage broke, OAuth still fails
 
-**Result:**
-- Homepage broke (returned JSON instead of HTML)
-- Fixed with explicit `/` route
-- **OAuth still broken, container still dies**
+### **Port Binding** ❌
+- Changed to `app.listen(PORT, '0.0.0.0')`
+- **Result:** Not yet tested
 
-### **3. Port Binding** ❌
-**Problem:** Suspected server not binding to correct interface
-
-**Fix Attempted:**
-- Changed `app.listen(PORT)` to `app.listen(PORT, '0.0.0.0')`
-
-**Result:** Latest change, not yet deployed/tested
-
-### **4. Package Dependencies** ✅ (Resolved)
-**Problem:** `package-lock.json` had wrong dotenv version
-
-**Fix:** Ran `npm install` locally and pushed updated lock file
-
-**Result:** Build succeeds, but runtime crash continues
-
-### **5. Environment Variables** ✅ (Confirmed Working)
-**Problem:** Suspected missing environment variables
-
-**Verification:** All 40+ variables confirmed present in Railway dashboard
+### **Dependencies** ✅
+- Fixed `package-lock.json` dotenv version
+- **Result:** Build succeeds, runtime crash continues
 
 ---
 
 ## **CODE VERIFICATION**
 
-### **OAuth Route Definition:**
+**OAuth Route:** Defined at line 4079 in server.js
 ```javascript
-// File: server.js, Line 4079
-console.log('📝 Registering OAuth callback route: GET /oauth/callback');
 app.get('/oauth/callback', async (req, res) => {
-  try {
-    logger.info('🔐 OAuth callback received', { query: req.query });
-    const { code, state } = req.query;
-
-    if (!code) {
-      logger.error('❌ No authorization code in callback');
-      return res.status(400).send(`
-        <script>
-          window.opener.postMessage({error: 'Authorization code not received'}, '*');
-          window.close();
-        </script>
-      `);
-    }
-    // ... rest of OAuth logic
-  } catch (error) {
-    logger.error('❌ OAuth callback error:', error);
-    res.status(500).send(`
-      <script>
-        window.opener.postMessage({error: 'Server error'}, '*');
-        window.close();
-      </script>
-    `);
-  }
+  // Proper OAuth callback implementation
 });
 ```
 
-### **Google OAuth Configuration:**
-```javascript
-// OAuth client initialization (Line ~4000)
-const { google } = require('googleapis');
-const oauth2Client = new OAuth2Client(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  `${req.protocol}://${req.get('host')}/oauth/callback`
-);
-```
-
-### **Frontend OAuth Flow:**
-```javascript
-// File: pages/customer-login.html
-// Popup opens to correct Google OAuth URL
-// Google redirects to: https://plwgscreativeapparel.com/oauth/callback?code=XXX
-```
+**Frontend:** Popup opens correctly to Google OAuth URL, redirects back to `/oauth/callback`
 
 ---
 
-## **WHAT WE NEED FROM RAILWAY SUPPORT**
+## **QUESTIONS FOR RAILWAY**
 
-### **Critical Questions:**
-1. **Why is the container being killed?** The logs show "Stopping Container" but no error message or stack trace.
-
-2. **Are there healthcheck failure logs?** Even though we've tried with/without healthcheck, we need to see Railway's healthcheck logs.
-
-3. **Are there resource limits being hit?** Memory, CPU, or network quotas?
-
-4. **Is there a load balancer or proxy issue?** The server logs show it's listening, but HTTP requests may not be reaching it.
-
-5. **Are there any platform-level issues?** Network problems, service disruptions, or configuration issues?
-
-### **Diagnostic Information We Need:**
-- Detailed deployment logs (beyond what's shown in dashboard)
-- Healthcheck-specific logs and metrics
-- Network/proxy/load balancer logs
-- Container resource usage metrics
-- Any error messages or warnings not visible in current logs
+1. **Why is container being killed?** No error messages, just SIGTERM
+2. **Healthcheck logs?** Need Railway's healthcheck failure details
+3. **Resource limits?** Memory/CPU/network quotas being hit?
+4. **Load balancer issue?** Server listening but requests not reaching it?
+5. **Platform issues?** Network problems or service disruptions?
 
 ---
 
-## **EVIDENCE THIS IS A RAILWAY ISSUE**
+## **EVIDENCE THIS IS RAILWAY ISSUE**
 
-### **Code Works Locally:**
-- ✅ Application runs perfectly in local development
-- ✅ OAuth works in local environment
-- ✅ All routes and endpoints function correctly
-
-### **Server Starts Successfully:**
-- ✅ All initialization completes (database, OAuth client, routes)
-- ✅ Express server binds to port and listens
-- ✅ No startup errors or exceptions
-
-### **Only Railway Kills It:**
-- ❌ Container dies immediately after startup
-- ❌ No error messages or stack traces
-- ❌ Consistent across 15+ different configuration attempts
+✅ **Code works locally** - OAuth functions perfectly
+✅ **Server starts successfully** - All initialization completes
+✅ **No startup errors** - Clean logs until Railway kills it
+❌ **Only Railway kills container** - Consistent across 15+ configs
 
 ---
 
 ## **BUSINESS IMPACT**
 
-**Critical:**
-- Google OAuth login completely broken for all users
-- Website becomes unresponsive
-- Customer authentication blocked
-- Business operations halted
+**Critical:** Google OAuth broken, customer auth blocked, business halted.
 
-**Timeline:** This has been broken for an extended period (user reports it's an "old problem").
+---
+
+## **RESPONSE TO RAILWAY: HEALTHCHECK TESTING**
+
+**Question:** Does it work if I disable healthcheck?
+
+**Answer:** ❌ **NO - We already tested this extensively**
+
+### **What We Tried:**
+1. **Removed healthcheck entirely** from `railway.json`
+2. **Deployed multiple times** with no healthcheck configuration
+3. **Result:** **EXACT SAME CRASH** - Container still dies after 5-10 seconds with SIGTERM
+
+### **Railway Logs Without Healthcheck:**
+```
+🚀 Starting server...
+✅ Google OAuth client initialized
+📝 Registering OAuth callback route: GET /oauth/callback
+🌐 Starting Express server on port 8080...
+✅ SERVER RUNNING on port 8080
+🔧 Initializing admin credentials in background...
+✅ Admin credentials initialized
+Stopping Container    ← Still kills it after 5-10 seconds
+npm error signal SIGTERM
+```
+
+### **Conclusion:**
+The healthcheck is **NOT** causing the issue. Railway is killing the container for a different reason (resource limits, network issues, or platform problems).
 
 ---
 
 ## **SUPPORT REQUEST**
 
-**Priority:** URGENT - Production service down
-**Issue Type:** Container deployment/crash
-**Expected Response Time:** Within 24 hours
+**Priority:** URGENT - Production down
+**Issue:** Container deployment failure (healthcheck already ruled out)
+**Response:** Within 24 hours
 
-Please investigate why Railway is killing our container and provide a resolution path. The application code is correct and works locally - this appears to be a Railway platform issue.
+Application code is correct and works locally. Railway is killing container for unknown reason despite successful startup.
 
----
-
-**Contact Information:**
-**Customer:** PLWGS Creative Apparel
+**Contact:** PLWGS Creative Apparel
 **Site:** https://plwgscreativeapparel.com
-**Railway Project ID:** PLWGSCREATIVEAPPAREL
-**Email:** [Your contact email]
-**Phone:** [Your contact phone]
-
-Thank you for your urgent assistance with this critical production issue.
+**Project:** PLWGSCREATIVEAPPAREL
