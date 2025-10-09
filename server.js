@@ -9059,17 +9059,18 @@ app.use((req, res, next) => {
 console.log(`🌐 Starting Express server on port ${PORT}...`);
 console.log(`📋 LOG_LEVEL is set to: ${LOG_LEVEL}`);
 console.log(`📋 Available routes will be logged below...`);
-const server = app.listen(PORT, () => {
-  console.log(`✅ SERVER RUNNING on port ${PORT}`);
-  logger.info(`🚀 Admin Dashboard API server running on port ${PORT}`);
-  logger.info(`📧 Email configured: ${process.env.EMAIL_FROM}`);
-  logger.info(`🗄️ Database connected: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`);
-  
-  // Configure server timeouts
-  server.timeout = serverTimeout;
-  server.keepAliveTimeout = 65000; // 65 seconds
-  server.headersTimeout = 66000; // 66 seconds
-  
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ SERVER RUNNING AND LISTENING on 0.0.0.0:${PORT}`);
+  console.log(`🌍 Server is now accepting HTTP connections`);
+    logger.info(`🚀 Admin Dashboard API server running on port ${PORT}`);
+    logger.info(`📧 Email configured: ${process.env.EMAIL_FROM}`);
+    logger.info(`🗄️ Database connected: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`);
+    
+    // Configure server timeouts
+    server.timeout = serverTimeout;
+    server.keepAliveTimeout = 65000; // 65 seconds
+    server.headersTimeout = 66000; // 66 seconds
+    
   // Initialize admin credentials in background (non-blocking)
   console.log('🔧 Initializing admin credentials in background...');
   initializeAdminCredentials().then(() => {
@@ -9080,9 +9081,9 @@ const server = app.listen(PORT, () => {
     // Initialize database in background (non-blocking)
     initializeDatabase().catch(err => {
       logger.error('❌ Database initialization failed, but server continues:', err.message);
-    });
-  }).catch(err => {
-    logger.error('❌ Failed to initialize admin credentials:', err);
+  });
+}).catch(err => {
+  logger.error('❌ Failed to initialize admin credentials:', err);
     // Don't exit - server can still run for OAuth, public routes, etc.
   });
 });
