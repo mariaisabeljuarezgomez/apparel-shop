@@ -9059,6 +9059,8 @@ app.use((req, res, next) => {
 
 // START SERVER IMMEDIATELY - Don't wait for admin init
 console.log(`🌐 Starting Express server on port ${PORT}...`);
+console.log(`📋 LOG_LEVEL is set to: ${LOG_LEVEL}`);
+console.log(`📋 Available routes will be logged below...`);
 const server = app.listen(PORT, () => {
   console.log(`✅ SERVER RUNNING on port ${PORT}`);
   logger.info(`🚀 Admin Dashboard API server running on port ${PORT}`);
