@@ -1039,14 +1039,9 @@ async function sendEmail(to, subject, html) {
   }
 }
 
-// Health check endpoint for Railway
+// Serve index.html at root
 app.get('/', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    service: 'PLWG Creative Apparel Admin Dashboard',
-    version: '1.0.0'
-  });
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Admin login
