@@ -9057,9 +9057,13 @@ app.use((req, res, next) => {
 });
 
 // Initialize admin credentials and start server
+console.log('🔧 Initializing admin credentials...');
 initializeAdminCredentials().then(() => {
+  console.log('✅ Admin credentials initialized');
   // Start server first
+  console.log(`🌐 Starting Express server on port ${PORT}...`);
   const server = app.listen(PORT, () => {
+    console.log(`✅ SERVER RUNNING on port ${PORT}`);
     logger.info(`🚀 Admin Dashboard API server running on port ${PORT}`);
     logger.info(`📧 Email configured: ${process.env.EMAIL_FROM}`);
     logger.info(`🗄️ Database connected: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`);
@@ -9077,7 +9081,8 @@ initializeAdminCredentials().then(() => {
     });
   });
 }).catch(err => {
-  logger.error('❌ Failed to initialize admin credentials:', err);
+  console.error('❌ FATAL: Failed to initialize admin credentials:', err);
+  console.error('❌ Error stack:', err.stack);
   process.exit(1);
 });
 
