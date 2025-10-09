@@ -9056,34 +9056,34 @@ app.use((req, res, next) => {
   res.status(404).send('File not found');
 });
 
-// Initialize admin credentials and start server
-console.log('🔧 Initializing admin credentials...');
-initializeAdminCredentials().then(() => {
-  console.log('✅ Admin credentials initialized');
-  // Start server first
-  console.log(`🌐 Starting Express server on port ${PORT}...`);
-  const server = app.listen(PORT, () => {
-    console.log(`✅ SERVER RUNNING on port ${PORT}`);
-    logger.info(`🚀 Admin Dashboard API server running on port ${PORT}`);
-    logger.info(`📧 Email configured: ${process.env.EMAIL_FROM}`);
-    logger.info(`🗄️ Database connected: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`);
+// START SERVER IMMEDIATELY - Don't wait for admin init
+console.log(`🌐 Starting Express server on port ${PORT}...`);
+const server = app.listen(PORT, () => {
+  console.log(`✅ SERVER RUNNING on port ${PORT}`);
+  logger.info(`🚀 Admin Dashboard API server running on port ${PORT}`);
+  logger.info(`📧 Email configured: ${process.env.EMAIL_FROM}`);
+  logger.info(`🗄️ Database connected: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`);
+  
+  // Configure server timeouts
+  server.timeout = serverTimeout;
+  server.keepAliveTimeout = 65000; // 65 seconds
+  server.headersTimeout = 66000; // 66 seconds
+  
+  // Initialize admin credentials in background (non-blocking)
+  console.log('🔧 Initializing admin credentials in background...');
+  initializeAdminCredentials().then(() => {
+    console.log('✅ Admin credentials initialized');
     logger.info(`🔐 Admin email: ${ADMIN_EMAIL_MEMO}`);
     logger.info(`🏷️ Category management system active`);
     
-    // Configure server timeouts
-    server.timeout = serverTimeout;
-    server.keepAliveTimeout = 65000; // 65 seconds
-    server.headersTimeout = 66000; // 66 seconds
-    
-    // Try to initialize database in background (non-blocking)
+    // Initialize database in background (non-blocking)
     initializeDatabase().catch(err => {
       logger.error('❌ Database initialization failed, but server continues:', err.message);
     });
+  }).catch(err => {
+    logger.error('❌ Failed to initialize admin credentials:', err);
+    // Don't exit - server can still run for OAuth, public routes, etc.
   });
-}).catch(err => {
-  console.error('❌ FATAL: Failed to initialize admin credentials:', err);
-  console.error('❌ Error stack:', err.stack);
-  process.exit(1);
 });
 
 module.exports = app; 
