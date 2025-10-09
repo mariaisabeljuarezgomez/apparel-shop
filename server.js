@@ -22,10 +22,22 @@ require('dotenv').config();
 console.log('🚀 Starting server...');
 
 // Initialize Google OAuth client
-const googleClient = new OAuth2Client(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET
-);
+let googleClient;
+try {
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    googleClient = new OAuth2Client(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET
+    );
+    console.log('✅ Google OAuth client initialized');
+  } else {
+    console.warn('⚠️  Google OAuth credentials not found - Google login will be disabled');
+    googleClient = null;
+  }
+} catch (error) {
+  console.error('❌ Failed to initialize Google OAuth client:', error.message);
+  googleClient = null;
+}
 
 // -----------------------------------------------------------------------------
 // Timeout Configuration - Fix request aborted errors
