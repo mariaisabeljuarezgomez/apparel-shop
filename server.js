@@ -9110,6 +9110,11 @@ app.get('/contact.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'pages', 'contact.html'));
 });
 
+// Serve return policy page
+app.get('/return-policy.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'pages', 'return-policy.html'));
+});
+
 // Handle Chrome DevTools requests silently (prevents 404 spam)
 app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
   res.status(204).end(); // No content, but not an error
