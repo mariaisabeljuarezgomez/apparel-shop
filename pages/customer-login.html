@@ -416,7 +416,7 @@
                                 <input type="checkbox" class="custom-checkbox rounded border-primary text-primary focus:ring-primary">
                                 <span class="ml-3 text-sm text-text-secondary font-medium">Remember me</span>
                             </label>
-                            <a href="#" class="text-sm text-primary hover:text-primary-light transition-colors font-semibold">Forgot password?</a>
+                            <a href="javascript:void(0)" onclick="showForgotPasswordModal()" class="text-sm text-primary hover:text-primary-light transition-colors font-semibold cursor-pointer">Forgot password?</a>
                         </div>
 
                         <button 
@@ -668,6 +668,121 @@
             }
         }
 
+        // Show forgot password modal
+        function showForgotPasswordModal() {
+            // Create modal HTML
+            const modalHTML = `
+                <div id="forgot-password-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-6">
+                    <div class="glass rounded-2xl p-8 w-full max-w-md animate-slide-up">
+                        <h3 class="font-orbitron font-bold text-2xl text-white mb-2">Reset Password</h3>
+                        <p class="text-text-secondary mb-6">Enter your email address and we'll send you a reset link.</p>
+
+                        <!-- Error Message -->
+                        <div id="forgot-error-message" class="hidden mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+                            <p id="forgot-error-text" class="text-red-400 text-sm"></p>
+                        </div>
+
+                        <!-- Success Message -->
+                        <div id="forgot-success-message" class="hidden mb-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                            <p id="forgot-success-text" class="text-green-400 text-sm"></p>
+                        </div>
+
+                        <form id="forgot-password-form">
+                            <div class="mb-6">
+                                <label for="forgot-email" class="block text-sm font-bold text-white mb-3 uppercase tracking-wider">Email Address</label>
+                                <input
+                                    type="email"
+                                    id="forgot-email"
+                                    class="form-input w-full"
+                                    placeholder="Enter your email address"
+                                    required
+                                />
+                            </div>
+
+                            <div class="flex space-x-4">
+                                <button type="button" onclick="closeForgotPasswordModal()" class="flex-1 border border-text-secondary text-text-secondary py-3 px-6 rounded-lg hover:bg-text-secondary hover:text-black transition-all duration-300">
+                                    Cancel
+                                </button>
+                                <button type="submit" id="forgot-submit-btn" class="flex-1 btn-primary">
+                                    <span id="forgot-btn-text">Send Reset Link</span>
+                                    <svg id="forgot-spinner" class="animate-spin ml-2 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            // Focus email input
+            document.getElementById('forgot-email').focus();
+        }
+
+        // Close forgot password modal
+        function closeForgotPasswordModal() {
+            const modal = document.getElementById('forgot-password-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Show forgot password error
+        function showForgotError(message) {
+            const errorDiv = document.getElementById('forgot-error-message');
+            const errorText = document.getElementById('forgot-error-text');
+            const successDiv = document.getElementById('forgot-success-message');
+
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            successDiv.classList.add('hidden');
+        }
+
+        // Show forgot password success
+        function showForgotSuccess(message) {
+            const successDiv = document.getElementById('forgot-success-message');
+            const successText = document.getElementById('forgot-success-text');
+            const errorDiv = document.getElementById('forgot-error-message');
+
+            successText.textContent = message;
+            successDiv.classList.remove('hidden');
+            errorDiv.classList.add('hidden');
+        }
+
+        // Hide forgot password messages
+        function hideForgotMessages() {
+            document.getElementById('forgot-error-message').classList.add('hidden');
+            document.getElementById('forgot-success-message').classList.add('hidden');
+        }
+
+        // Handle forgot password request
+        async function handleForgotPassword(email) {
+            try {
+                const response = await fetch('/api/customer/password/request-reset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showForgotSuccess(data.message || 'Reset link sent to your email!');
+                } else {
+                    showForgotError(data.error || 'Failed to send reset email');
+                }
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                showForgotError('Network error. Please try again.');
+            }
+        }
+
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
             createParticles();
@@ -677,6 +792,37 @@
             if (token) {
                 window.location.href = 'account.html';
             }
+
+            // Forgot password form event listener
+            document.addEventListener('submit', (e) => {
+                if (e.target.id === 'forgot-password-form') {
+                    e.preventDefault();
+                    hideForgotMessages();
+
+                    const email = document.getElementById('forgot-email').value;
+
+                    if (!email) {
+                        showForgotError('Email is required');
+                        return;
+                    }
+
+                    // Show loading
+                    const forgotBtn = document.getElementById('forgot-submit-btn');
+                    const forgotBtnText = document.getElementById('forgot-btn-text');
+                    const forgotSpinner = document.getElementById('forgot-spinner');
+
+                    forgotBtn.disabled = true;
+                    forgotBtnText.textContent = 'Sending...';
+                    forgotSpinner.classList.remove('hidden');
+
+                    handleForgotPassword(email).finally(() => {
+                        // Hide loading
+                        forgotBtn.disabled = false;
+                        forgotBtnText.textContent = 'Send Reset Link';
+                        forgotSpinner.classList.add('hidden');
+                    });
+                }
+            });
             
             // Login form
             document.getElementById('loginForm').addEventListener('submit', async (e) => {

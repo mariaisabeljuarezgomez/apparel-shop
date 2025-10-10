@@ -1001,6 +1001,7 @@ async function initializeDatabase() {
 // In-memory stores for email-based 2FA and password reset tokens
 const twoFactorStore = new Map(); // token -> { email, code, expiresAt }
 const passwordResetStore = new Map(); // token -> { email, expiresAt }
+const customerPasswordResetStore = new Map(); // token -> { email, expiresAt }
 
 function generateNumericCode(length = 6) {
   const max = Math.pow(10, length) - 1;
@@ -1469,6 +1470,106 @@ app.post('/api/admin/password/bootstrap', validatePasswordBootstrap, async (req,
     res.json({ success: true });
   } catch (err) {
     logger.error('Bootstrap set password error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// =============================================================================
+// CUSTOMER PASSWORD RESET ENDPOINTS
+// =============================================================================
+
+// Customer password reset request validation
+const validateCustomerPasswordResetRequest = [
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required')
+];
+
+// Customer password reset validation
+const validateCustomerPasswordReset = [
+  body('token').notEmpty().withMessage('Reset token is required'),
+  body('newPassword').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long')
+];
+
+// Request customer password reset (sends a token link to email)
+app.post('/api/customer/password/request-reset', validateCustomerPasswordResetRequest, async (req, res) => {
+  try {
+    const { email } = req.body || {};
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    if (!pool) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+
+    // Check if customer exists
+    const customerResult = await pool.query('SELECT id, name FROM customers WHERE email = $1', [email]);
+    if (customerResult.rows.length === 0) {
+      // Don't reveal if email exists or not for security
+      return res.json({ success: true, message: 'If an account with that email exists, a reset link has been sent.' });
+    }
+
+    const customer = customerResult.rows[0];
+    const token = crypto.randomBytes(24).toString('hex');
+    const expiresAt = Date.now() + 30 * 60 * 1000; // 30 minutes
+
+    customerPasswordResetStore.set(token, { email, expiresAt });
+
+    const resetUrl = `${process.env.BASE_URL || 'https://plwgscreativeapparel.com'}/pages/customer-password-reset.html?token=${token}`;
+    const resetHtml = `
+      <p>Hello ${customer.name || 'Customer'},</p>
+      <p>You requested a password reset for your PLWGS Creative Apparel account.</p>
+      <p>Click the link below to reset your password:</p>
+      <p><a href="${resetUrl}" style="background:#ff8306;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block;">Reset Password</a></p>
+      <p>If you didn't request this reset, please ignore this email.</p>
+      <p>This link expires in 30 minutes.</p>
+    `;
+
+    const sent = await sendEmail(email, 'Password Reset - PLWGS Creative Apparel', resetHtml);
+    if (!sent) {
+      return res.status(500).json({ error: 'Failed to send reset email' });
+    }
+
+    res.json({ success: true, message: 'If an account with that email exists, a reset link has been sent.' });
+  } catch (error) {
+    logger.error('Customer password reset request error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Perform customer password reset using token
+app.post('/api/customer/password/reset', validateCustomerPasswordReset, async (req, res) => {
+  try {
+    const { token, newPassword } = req.body || {};
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and new password are required' });
+    }
+
+    const record = customerPasswordResetStore.get(token);
+    if (!record) {
+      return res.status(400).json({ error: 'Invalid or expired token' });
+    }
+
+    if (Date.now() > record.expiresAt) {
+      customerPasswordResetStore.delete(token);
+      return res.status(400).json({ error: 'Token expired' });
+    }
+
+    if (!pool) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, parseInt(process.env.BCRYPT_SALT_ROUNDS || '12', 10));
+
+    // Update customer password
+    await pool.query('UPDATE customers SET password = $1, updated_at = NOW() WHERE email = $2', [newHash, record.email]);
+
+    customerPasswordResetStore.delete(token);
+
+    res.json({ success: true, message: 'Password reset successfully' });
+  } catch (error) {
+    logger.error('Customer password reset error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
