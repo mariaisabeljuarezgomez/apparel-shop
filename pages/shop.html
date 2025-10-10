@@ -2741,53 +2741,22 @@
             console.log('Category dropdown removed - using sidebar filters instead');
         }
 
-        // Initialize search functionality
-        function initializeSearch() {
-            const searchInput = document.getElementById('search-input');
-            if (searchInput) {
-                let searchTimeout;
-                
-                searchInput.addEventListener('input', (e) => {
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => {
-                        const query = e.target.value.trim();
-                        if (query.length >= 2) {
-                            performSearch(query);
-                        } else if (query.length === 0) {
-                            clearSearch();
-                        }
-                    }, 300);
-                });
-                
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const query = e.target.value.trim();
-                        if (query.length >= 2) {
-                            performSearch(query);
-                        }
-                    }
-                });
-            }
-            
-            // Add click handlers to search suggestions
-            const searchSuggestions = document.querySelectorAll('[data-search]');
-            searchSuggestions.forEach(suggestion => {
-                suggestion.addEventListener('click', () => {
-                    const searchTerm = suggestion.getAttribute('data-search');
-                    if (searchTerm) {
-                        performSearch(searchTerm);
-                    }
-                });
-            });
-        }
+        // Initialize search functionality - consolidated with main search implementation
+        // The main search functionality is already implemented above (lines 1234-1298)
+        // This function is kept for compatibility but delegates to the main implementation
 
-        // Perform search
-        async function performSearch(query) {
+        // Perform search (now uses local filtering instead of redirect)
+        function performSearch(query) {
             try {
                 console.log('Searching for:', query);
-                // Redirect to shop with search parameter
-                window.location.href = `shop.html?search=${encodeURIComponent(query)}`;
+                // Use the existing local search functionality
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    searchInput.value = query;
+                    // Trigger the existing search event
+                    const event = new Event('input', { bubbles: true });
+                    searchInput.dispatchEvent(event);
+                }
             } catch (error) {
                 console.error('Search error:', error);
             }
@@ -2799,10 +2768,16 @@
             console.log('Category filtering removed - use sidebar filters instead');
         }
 
-        // Clear search
+        // Clear search (now uses local filtering instead of redirect)
         function clearSearch() {
-            // Reset to show all products
-            window.location.href = 'shop.html';
+            // Reset to show all products using local filtering
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.value = '';
+                // Trigger the existing search event to show all products
+                const event = new Event('input', { bubbles: true });
+                searchInput.dispatchEvent(event);
+            }
         }
 
         // Particles are already initialized in the main DOMContentLoaded listener above
