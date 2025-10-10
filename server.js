@@ -5779,7 +5779,14 @@ const validateProduct = [
   body('custom_lyrics_question').optional().isString().isLength({ max: 500 }).withMessage('Custom lyrics question must be less than 500 characters'),
   body('specifications.brand_preference').optional().isString().withMessage('Brand preference must be a string'),
   body('shipping_cost').optional().isFloat({ min: 0 }).withMessage('Shipping cost must be a positive number'),
-  body('additional_item_shipping').optional().isFloat({ min: 0 }).withMessage('Additional item shipping must be a positive number'),
+  body('additional_item_shipping').optional().custom((value) => {
+    if (value === null || value === undefined || value === '') return true;
+    const num = parseFloat(value);
+    if (isNaN(num) || num < 0) {
+      throw new Error('Additional item shipping must be a positive number or null');
+    }
+    return true;
+  }),
   body('local_pickup_enabled').optional().isBoolean().withMessage('Local pickup enabled must be a boolean'),
   (req, res, next) => {
     const errors = validationResult(req);
