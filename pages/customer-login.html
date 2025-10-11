@@ -1046,7 +1046,7 @@
                 }
 
                 if (typeof google === 'undefined') {
-                    console.log('ℹ️ Google Sign-In scripts not available - feature disabled');
+                    console.error('❌ Google Sign-In scripts failed to load after 5 seconds');
                     return;
                 }
 
@@ -1057,15 +1057,16 @@
                 const configResponse = await fetch('/api/config/google-client-id');
 
                 if (!configResponse.ok) {
-                    console.log('ℹ️ Google OAuth not configured - Google Sign-In disabled');
+                    console.error('❌ Failed to fetch Google Client ID:', configResponse.status);
                     return;
                 }
 
                 const configData = await configResponse.json();
-                const clientId = configData.clientId;
+                const clientId = configData.client_id || configData.clientId;
 
                 if (!clientId) {
-                    console.log('ℹ️ Google OAuth not configured - Google Sign-In disabled');
+                    console.error('❌ No Google Client ID received from server');
+                    console.error('Server response:', configData);
                     return;
                 }
 
