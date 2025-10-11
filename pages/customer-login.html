@@ -874,7 +874,7 @@
                     const responseType = 'code';
                     const state = Math.random().toString(36).substring(2, 15);
                     
-                    const googleAuthUrl = `https://accounts.google.com/oauth/authorize?` +
+                    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
                         `client_id=${encodeURIComponent(config.client_id)}&` +
                         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
                         `scope=${encodeURIComponent(scope)}&` +
