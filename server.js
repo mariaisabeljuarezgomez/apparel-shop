@@ -4195,7 +4195,8 @@ app.get('/oauth/callback', async (req, res) => {
     logger.info('✅ Authorization code received, exchanging for token...');
 
     // Exchange code for access token
-    const redirectUri = `${req.protocol}://${req.get('host')}/oauth/callback`;
+    // MUST match exactly what frontend sent (always HTTPS in production)
+    const redirectUri = 'https://plwgscreativeapparel.com/oauth/callback';
     logger.info('🔄 Token exchange params:', {
       client_id: process.env.GOOGLE_CLIENT_ID ? 'SET' : 'MISSING',
       client_secret: process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'MISSING',
