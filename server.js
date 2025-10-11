@@ -4178,6 +4178,8 @@ app.options('/api/customer/auth/google', (req, res) => {
 // Handle Google OAuth callback (when user returns from Google)
 console.log('📝 Registering OAuth callback route: GET /oauth/callback');
 app.get('/oauth/callback', async (req, res) => {
+  console.log('🔐 OAuth callback HIT - Route is working!');
+  console.log('Query params:', req.query);
   try {
     logger.info('🔐 OAuth callback received', { query: req.query });
     const { code, state } = req.query;
