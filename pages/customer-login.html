@@ -851,8 +851,7 @@
                 registerSpinner.classList.add('hidden');
             });
 
-            // Initialize Google Sign-In and other page functionality
-            initializeGoogleSignIn();
+            // Google Sign-In will be initialized by the global function outside DOMContentLoaded
 
             // Alternative Google OAuth using popup method
             async function googleOAuthPopup() {
@@ -921,11 +920,15 @@
                     // Listen for popup to close
                     const checkClosed = setInterval(() => {
                         if (popup.closed) {
+                            console.log('🔍 Popup detected as closed. Message received:', messageReceived);
                             clearInterval(checkClosed);
                             window.removeEventListener('message', messageListener);
                             // Only show cancelled message if we didn't receive a response
                             if (!messageReceived) {
+                                console.log('⚠️ Showing cancelled message');
                                 showMessage('Google login cancelled', 'info');
+                            } else {
+                                console.log('✅ Message was received, not showing cancelled message');
                             }
                         }
                     }, 1000);
@@ -1036,10 +1039,20 @@
             
             // Close forgot password modal button
             document.getElementById('close-forgot-modal-btn').addEventListener('click', closeForgotPasswordModal);
+            
+            // Initialize Google Sign-In (called at end of DOMContentLoaded)
+            initializeGoogleSignIn();
         });
 
         // Initialize Google Sign-In (called from DOMContentLoaded)
+        let googleSignInInitialized = false;
         async function initializeGoogleSignIn() {
+            if (googleSignInInitialized) {
+                console.log('⚠️ Google Sign-In already initialized, skipping...');
+                return;
+            }
+            googleSignInInitialized = true;
+            
             try {
                 console.log('🔍 Starting Google Sign-In initialization...');
 
