@@ -538,6 +538,41 @@
         </div>
     </main>
 
+    <!-- Forgot Password Modal -->
+    <div id="forgot-password-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="form-container p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-orbitron font-black text-2xl text-white">Reset Password</h2>
+                <button type="button" id="close-forgot-modal-btn" class="text-white hover:text-primary transition-colors text-3xl leading-none">&times;</button>
+            </div>
+            
+            <div id="forgot-messages"></div>
+            
+            <form id="forgot-password-form" class="space-y-4">
+                <div>
+                    <label for="forgot-email" class="block text-sm font-bold text-white mb-2 uppercase tracking-wider">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="forgot-email" 
+                        name="email" 
+                        class="form-input w-full"
+                        placeholder="Enter your email address"
+                        required
+                    />
+                </div>
+                
+                <button 
+                    type="submit" 
+                    id="forgot-submit-btn"
+                    class="btn-primary w-full py-3 font-bold"
+                >
+                    <span id="forgot-btn-text">Send Reset Link</span>
+                    <div id="forgot-spinner" class="spinner ml-3 hidden inline-block"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Create particles
         function createParticles() {
@@ -589,6 +624,58 @@
                 registerForm.classList.remove('hidden');
                 showRegisterBtn.classList.add('hidden');
                 showLoginBtn.classList.remove('hidden');
+            }
+        }
+
+        // Forgot Password Modal Functions
+        function showForgotPasswordModal() {
+            document.getElementById('forgot-password-modal').classList.remove('hidden');
+            document.getElementById('forgot-email').value = '';
+            hideForgotMessages();
+        }
+
+        function closeForgotPasswordModal() {
+            document.getElementById('forgot-password-modal').classList.add('hidden');
+            hideForgotMessages();
+        }
+
+        function showForgotError(message) {
+            const messagesContainer = document.getElementById('forgot-messages');
+            messagesContainer.innerHTML = `<div class="message error">${message}</div>`;
+        }
+
+        function showForgotSuccess(message) {
+            const messagesContainer = document.getElementById('forgot-messages');
+            messagesContainer.innerHTML = `<div class="message success">${message}</div>`;
+        }
+
+        function hideForgotMessages() {
+            document.getElementById('forgot-messages').innerHTML = '';
+        }
+
+        async function handleForgotPassword(email) {
+            try {
+                const response = await fetch('/api/customer/password/request-reset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showForgotSuccess('Password reset link sent! Check your email.');
+                    setTimeout(() => {
+                        closeForgotPasswordModal();
+                    }, 3000);
+                } else {
+                    showForgotError(data.error || 'Failed to send reset link');
+                }
+            } catch (error) {
+                console.error('Password reset error:', error);
+                showForgotError('Network error. Please try again.');
             }
         }
 
@@ -1018,6 +1105,9 @@
 
             // Forgot password link
             document.getElementById('forgot-password-link').addEventListener('click', showForgotPasswordModal);
+            
+            // Close forgot password modal button
+            document.getElementById('close-forgot-modal-btn').addEventListener('click', closeForgotPasswordModal);
         });
 
         // Initialize Google Sign-In (called from DOMContentLoaded)
