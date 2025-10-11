@@ -492,7 +492,7 @@ app.get('/checkout.html', (req, res) => {
     "default-src 'self'; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com https://accounts.google.com; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://www.paypal.com https://www.paypalobjects.com https://accounts.google.com https://apis.google.com; " +
-    "script-src-attr 'unsafe-hashes' 'sha256-1jAmyYXcRq6zFldLe/GCgIDJBiOONdXjTLgEFMDnDSM=' 'sha256-R6AaG80nmkGc9oFSNvZVF7OOo5gLWHC/2y0eOYYohJ8=' 'sha256-GMTUiihXfPWngWeq4wqBusQMc3uhwAYGIklr70mSqTc=' 'sha256-/l6w0vnC+DN7tMFOiJiEWqLyy8uJoFwM6E0yzhKXRRQ=' 'sha256-2rvfFrggTCtyF5WOiTri1gDS8Boibj4Njn0e+VCBmDI=' 'sha256-7s2SeAiBOyYK/9QWYmQ6xelnONAgkw/omxu2Lca+qVM='; " +
+    "script-src-attr 'unsafe-hashes' 'sha256-1jAmyYXcRq6zFldLe/GCgIDJBiOONdXjTLgEFMDnDSM=' 'sha256-R6AaG80nmkGc9oFSNvZVF7OOo5gLWHC/2y0eOYYohJ8=' 'sha256-GMTUiihXfPWngWeq4wqBusQMc3uhwAYGIklr70mSqTc=' 'sha256-/l6w0vnC+DN7tMFOiJiEWqLyy8uJoFwM6E0yzhKXRRQ=' 'sha256-2rvfFrggTCtyF5WOiTri1gDS8Boibj4Njn0e+VCBmDI=' 'sha256-7s2SeAiBOyYK/9QWYmQ6xelnONAgkw/omxu2Lca+qVM=' 'sha256-CqA80ZxXBeFkoY/kIlNFBdXJKRrblsrW2g20MRcFobg='; " +
     "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; " +
     "img-src 'self' data: https: http: blob:; " +
     "connect-src 'self' https://api.paypal.com https://api.sandbox.paypal.com https://www.paypal.com https://www.sandbox.paypal.com https://*.paypal.com https://*.paypalobjects.com https://accounts.google.com; " +

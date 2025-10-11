@@ -709,6 +709,8 @@
                 }
             });
 
+            // Login form
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
 
                 const email = document.getElementById('email').value;
@@ -723,12 +725,13 @@
                 loginBtnText.textContent = 'Signing In...';
                 loginSpinner.classList.remove('hidden');
 
-                await handleLogin(email, password);
+                try {
+                    await handleLogin(email, password);
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showMessage('Login failed. Please try again.');
+                }
 
-                // Reset button
-                loginBtn.disabled = false;
-                loginBtnText.textContent = 'Sign In';
-                loginSpinner.classList.add('hidden');
                 // Reset button
                 loginBtn.disabled = false;
                 loginBtnText.textContent = 'Sign In';
