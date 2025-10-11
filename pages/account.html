@@ -820,7 +820,8 @@
             try {
                 const token = localStorage.getItem('customerToken');
                 if (!token) {
-                    console.log('No customer token found');
+                    console.log('No customer token found - user not logged in');
+                    window.location.href = 'customer-login.html';
                     return;
                 }
 
@@ -871,7 +872,10 @@
         async function loadUserOrders() {
             try {
                 const token = localStorage.getItem('customerToken');
-                if (!token) return;
+                if (!token) {
+                    window.location.href = 'customer-login.html';
+                    return;
+                }
 
                 const response = await fetch('/api/customer/orders', {
                     headers: {
@@ -971,7 +975,10 @@
         async function loadUserAddresses() {
             try {
                 const token = localStorage.getItem('customerToken');
-                if (!token) return;
+                if (!token) {
+                    window.location.href = 'customer-login.html';
+                    return;
+                }
 
                 const response = await fetch('/api/customer/addresses', {
                     headers: {
@@ -1060,7 +1067,10 @@
         async function loadUserWishlist() {
             try {
                 const token = localStorage.getItem('customerToken');
-                if (!token) return;
+                if (!token) {
+                    window.location.href = 'customer-login.html';
+                    return;
+                }
 
                 const response = await fetch('/api/customer/wishlist', {
                     headers: {
@@ -1655,6 +1665,14 @@
 
         // Initialize particles on load
         document.addEventListener('DOMContentLoaded', () => {
+            // Check if customer is logged in - redirect to login if not
+            const token = localStorage.getItem('customerToken');
+            if (!token) {
+                console.log('No customer token found - redirecting to login');
+                window.location.href = 'customer-login.html';
+                return; // Stop execution if not logged in
+            }
+
             createParticles();
             loadUserData();
             loadUserOrders();
