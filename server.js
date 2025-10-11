@@ -4194,11 +4194,16 @@ app.get('/oauth/callback', async (req, res) => {
       `);
     }
 
+    console.log('✅ Authorization code received, exchanging for token...');
     logger.info('✅ Authorization code received, exchanging for token...');
 
     // Exchange code for access token
     // MUST match exactly what frontend sent (always HTTPS in production)
     const redirectUri = 'https://plwgscreativeapparel.com/oauth/callback';
+    console.log('🔄 Token exchange params - Client ID:', process.env.GOOGLE_CLIENT_ID ? 'SET' : 'MISSING');
+    console.log('🔄 Token exchange params - Client Secret:', process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'MISSING');
+    console.log('🔄 Token exchange params - Redirect URI:', redirectUri);
+    console.log('🔄 Token exchange params - Has code:', !!code);
     logger.info('🔄 Token exchange params:', {
       client_id: process.env.GOOGLE_CLIENT_ID ? 'SET' : 'MISSING',
       client_secret: process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'MISSING',
@@ -4206,6 +4211,7 @@ app.get('/oauth/callback', async (req, res) => {
       has_code: !!code
     });
 
+    console.log('🌐 About to fetch token from Google...');
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -4218,7 +4224,9 @@ app.get('/oauth/callback', async (req, res) => {
       })
     });
 
+    console.log('📡 Token response status:', tokenResponse.status);
     const tokenData = await tokenResponse.json();
+    console.log('📡 Token data received:', JSON.stringify(tokenData));
     logger.info('📡 Token response:', { 
       status: tokenResponse.status,
       has_access_token: !!tokenData.access_token,

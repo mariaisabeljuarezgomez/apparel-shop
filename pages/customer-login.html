@@ -898,15 +898,18 @@
                     }
 
                     // Listen for messages from popup
+                    let messageReceived = false;
                     const messageListener = (event) => {
                         if (event.origin !== window.location.origin) return;
                         
                         if (event.data.success) {
                             // Handle successful OAuth
+                            messageReceived = true;
                             console.log('✅ Google OAuth successful:', event.data.user);
                             handleGoogleUserData(event.data.user);
                             window.removeEventListener('message', messageListener);
                         } else if (event.data.error) {
+                            messageReceived = true;
                             console.error('❌ Google OAuth error:', event.data.error);
                             showMessage(`Google login failed: ${event.data.error}`, 'error');
                             window.removeEventListener('message', messageListener);
@@ -920,7 +923,10 @@
                         if (popup.closed) {
                             clearInterval(checkClosed);
                             window.removeEventListener('message', messageListener);
-                            showMessage('Google login cancelled', 'info');
+                            // Only show cancelled message if we didn't receive a response
+                            if (!messageReceived) {
+                                showMessage('Google login cancelled', 'info');
+                            }
                         }
                     }, 1000);
 
