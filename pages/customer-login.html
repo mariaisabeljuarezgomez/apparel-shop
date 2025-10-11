@@ -416,7 +416,7 @@
                                 <input type="checkbox" class="custom-checkbox rounded border-primary text-primary focus:ring-primary">
                                 <span class="ml-3 text-sm text-text-secondary font-medium">Remember me</span>
                             </label>
-                            <a href="javascript:void(0)" onclick="showForgotPasswordModal()" class="text-sm text-primary hover:text-primary-light transition-colors font-semibold cursor-pointer">Forgot password?</a>
+                            <a href="javascript:void(0)" id="forgot-password-link" class="text-sm text-primary hover:text-primary-light transition-colors font-semibold cursor-pointer">Forgot password?</a>
                         </div>
 
                         <button 
@@ -766,7 +766,6 @@
 
             // Initialize Google Sign-In and other page functionality
             initializeGoogleSignIn();
-            updateCartCounter();
             
             // Initialize Google Sign-In
             async function initializeGoogleSignIn() {
@@ -1016,6 +1015,9 @@
             // Toggle buttons
             document.getElementById('showRegisterBtn').addEventListener('click', toggleForms);
             document.getElementById('showLoginBtn').addEventListener('click', toggleForms);
+
+            // Forgot password link
+            document.getElementById('forgot-password-link').addEventListener('click', showForgotPasswordModal);
         });
 
         // Initialize Google Sign-In (called from DOMContentLoaded)
@@ -1023,9 +1025,16 @@
             try {
                 console.log('🔍 Starting Google Sign-In initialization...');
 
-                // Check if Google script is loaded
+                // Check if Google script is loaded (wait a bit for it to load)
+                let attempts = 0;
+                while (typeof google === 'undefined' && attempts < 10) {
+                    console.log('⏳ Waiting for Google script to load...');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    attempts++;
+                }
+
                 if (typeof google === 'undefined') {
-                    console.error('❌ Google script not loaded');
+                    console.error('❌ Google script not loaded after waiting');
                     return;
                 }
 
