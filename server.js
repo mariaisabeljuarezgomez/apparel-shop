@@ -450,7 +450,11 @@ app.use(helmet({
         "'sha256-L10CMilsrZSwYuUYg9Z2Yq0q6oerXJxauckSdxJ8kEM='",
         "'sha256-EM22HBXijO8x2XvD+orCxyaPUN/N7mayoC13cgip7+4='",
         "'sha256-KNsgip40KfgA7pVG8nQogEoOy5udntgYDjdNHPD6Wlc='",
-        "'sha256-1RdPi0Cm8ia4uRYzIHGC9I3CQTjQMm2i8TKNY7Lr8t0='"
+        "'sha256-1RdPi0Cm8ia4uRYzIHGC9I3CQTjQMm2i8TKNY7Lr8t0='",
+        // Additional account page handlers
+        "'sha256-xHtGU0DNDX8h0mNjN03Faoso0x7Tjn/ztPJFeDbXTpU='",
+        "'sha256-Ya9abmVbqA01xjTVUDy/tYNDlf+Imf2f6YV/YXd4VG4='",
+        "'sha256-baB/xdiIkdTIBgpc+2u21Ys3TCZiagE06Vcg8egIGhQ='"
       ],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https:", "http:", "blob:"],
