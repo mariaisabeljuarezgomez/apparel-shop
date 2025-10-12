@@ -195,6 +195,12 @@
                         };
                         
                         console.log('📦 Shipping data:', shippingData);
+                        console.log('💰 Order amounts:', {
+                            subtotal: window.orderSubtotal,
+                            shipping: window.orderShipping,
+                            tax: window.orderTax,
+                            total: window.orderTotal
+                        });
                         
                         // CRITICAL FIX: Return fetch promise directly (prevents popup)
                         return fetch('/api/paypal/create-order', {
@@ -204,7 +210,11 @@
                                 'Authorization': `Bearer ${token}`
                             },
                             body: JSON.stringify({
-                                shipping_address: shippingData
+                                shipping_address: shippingData,
+                                subtotal: window.orderSubtotal || 0,
+                                shipping_cost: window.orderShipping || 0,
+                                tax: window.orderTax || 0,
+                                total: window.orderTotal || 0
                             })
                         })
                         .then(response => {

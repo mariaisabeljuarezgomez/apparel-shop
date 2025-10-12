@@ -6763,7 +6763,9 @@ app.post('/api/paypal/create-order', authenticateCustomer, async (req, res) => {
 
   try {
     const customerId = req.customer.id;
-    const { shipping_address } = req.body;
+    const { shipping_address, subtotal, shipping_cost, tax, total } = req.body;
+
+    logger.info(`💰 Order amounts received from frontend: subtotal=$${subtotal}, shipping=$${shipping_cost}, tax=$${tax}, total=$${total}`);
 
     // Get customer info
     const customerResult = await pool.query(`
@@ -6786,25 +6788,32 @@ app.post('/api/paypal/create-order', authenticateCustomer, async (req, res) => {
     }
 
     const cartItems = cartResult.rows;
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.quantity * parseFloat(item.unit_price)), 0);
-    const shipping = await calculateTieredShipping(cartItems);
-    const tax = subtotal * 0.085; // 8.5% tax
-    const total = subtotal + shipping + tax;
+    
+    // Use frontend-calculated values (already includes local pickup logic)
+    const finalSubtotal = parseFloat(subtotal) || cartItems.reduce((sum, item) => sum + (item.quantity * parseFloat(item.unit_price)), 0);
+    const finalShipping = parseFloat(shipping_cost) || 0;
+    const finalTax = parseFloat(tax) || 0;
+    const finalTotal = parseFloat(total) || (finalSubtotal + finalShipping + finalTax);
+
+    logger.info(`✅ Final amounts to save: subtotal=$${finalSubtotal}, shipping=$${finalShipping}, tax=$${finalTax}, total=$${finalTotal}`);
 
     // Generate order number
     const orderNumber = 'PLW-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
 
-    // Create order in database first (with pending status)
+    // Create order in database with ALL financial details
     const orderResult = await pool.query(`
-            INSERT INTO orders (order_number, customer_id, customer_email, customer_name, total_amount, shipping_address, payment_method, payment_status, status)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending')
+            INSERT INTO orders (order_number, customer_id, customer_email, customer_name, total_amount, subtotal, shipping_amount, tax_amount, shipping_address, payment_method, payment_status, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending')
       RETURNING *
     `, [
       orderNumber, 
       customerId, 
       customer.email, 
       `${customer.first_name} ${customer.last_name}`,
-      total,
+      finalTotal,
+      finalSubtotal,
+      finalShipping,
+      finalTax,
       JSON.stringify(shipping_address),
       'paypal',
       'pending'
@@ -6982,7 +6991,9 @@ app.post('/api/orders/create', authenticateCustomer, async (req, res) => {
 
   try {
     const customerId = req.customer.id;
-    const { shipping_address, payment_method, payment_id, payment_details } = req.body;
+    const { shipping_address, payment_method, payment_id, payment_details, subtotal, shipping_cost, tax, total } = req.body;
+
+    logger.info(`💰 /api/orders/create - Order amounts received: subtotal=$${subtotal}, shipping=$${shipping_cost}, tax=$${tax}, total=$${total}`);
 
     // Get customer info
     const customerResult = await pool.query(`
@@ -7005,22 +7016,30 @@ app.post('/api/orders/create', authenticateCustomer, async (req, res) => {
     }
 
     const cartItems = cartResult.rows;
-    const total_amount = cartItems.reduce((sum, item) => sum + (item.quantity * parseFloat(item.unit_price)), 0);
+    
+    // Use frontend-calculated values (already includes local pickup logic)
+    const finalSubtotal = parseFloat(subtotal) || cartItems.reduce((sum, item) => sum + (item.quantity * parseFloat(item.unit_price)), 0);
+    const finalShipping = parseFloat(shipping_cost) || 0;
+    const finalTax = parseFloat(tax) || 0;
+    const finalTotal = parseFloat(total) || (finalSubtotal + finalShipping + finalTax);
 
     // Generate order number
     const orderNumber = 'PLW-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
 
-    // Create order
+    // Create order with ALL financial details
     const orderResult = await pool.query(`
-            INSERT INTO orders (order_number, customer_id, customer_email, customer_name, total_amount, shipping_address, payment_method, payment_id, payment_status, status)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending')
+            INSERT INTO orders (order_number, customer_id, customer_email, customer_name, total_amount, subtotal, shipping_amount, tax_amount, shipping_address, payment_method, payment_id, payment_status, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending')
       RETURNING *
     `, [
       orderNumber, 
       customerId, 
       customer.email, 
       `${customer.first_name} ${customer.last_name}`, 
-      total_amount, 
+      finalTotal,
+      finalSubtotal,
+      finalShipping,
+      finalTax,
       JSON.stringify(shipping_address),
       payment_method || 'paypal',
       payment_id,
