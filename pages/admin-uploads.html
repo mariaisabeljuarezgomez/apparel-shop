@@ -228,8 +228,24 @@
                  </a>
             </nav>
 
-            <!-- Quick Actions -->
+            <!-- Maintenance Mode Toggle -->
             <div class="mt-8 pt-6 border-t border-surface-light">
+                <h3 class="text-text-secondary text-sm font-medium mb-4">Site Control</h3>
+                <div class="bg-surface p-4 rounded-lg border border-warning border-opacity-30">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-text">Maintenance Mode</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="maintenance-toggle" class="sr-only peer" />
+                            <div class="w-11 h-6 bg-surface-light rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-warning"></div>
+                        </label>
+                    </div>
+                    <p class="text-xs text-text-secondary">When enabled, visitors see a maintenance page</p>
+                    <div id="maintenance-status" class="mt-2 text-xs font-medium"></div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mt-6 pt-6 border-t border-surface-light">
                 <h3 class="text-text-secondary text-sm font-medium mb-4">Quick Actions</h3>
                 <div class="space-y-2">
                     <button id="add-new-product-btn" class="w-full text-left px-4 py-2 text-sm text-text-secondary hover:text-accent hover:bg-accent hover:bg-opacity-10 rounded-lg transition-all duration-300">
@@ -1812,7 +1828,89 @@
                     sizeChartSection.style.display = this.checked ? 'block' : 'none';
                 });
             }
+
+            // Maintenance Mode Toggle
+            loadMaintenanceStatus();
+            
+            const maintenanceToggle = document.getElementById('maintenance-toggle');
+            if (maintenanceToggle) {
+                maintenanceToggle.addEventListener('change', async function() {
+                    const enabled = this.checked;
+                    try {
+                        const response = await fetch('/api/maintenance-mode', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({ enabled })
+                        });
+
+                        if (response.ok) {
+                            updateMaintenanceStatus(enabled);
+                            showNotification(enabled ? '⚠️ Maintenance mode enabled - Site is now offline' : '✅ Maintenance mode disabled - Site is now live', enabled ? 'warning' : 'success');
+                        } else {
+                            this.checked = !enabled;
+                            showNotification('❌ Failed to update maintenance mode', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error updating maintenance mode:', error);
+                        this.checked = !enabled;
+                        showNotification('❌ Error updating maintenance mode', 'error');
+                    }
+                });
+            }
         });
+
+        async function loadMaintenanceStatus() {
+            try {
+                const response = await fetch('/api/maintenance-mode', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const toggle = document.getElementById('maintenance-toggle');
+                    if (toggle) {
+                        toggle.checked = data.enabled;
+                        updateMaintenanceStatus(data.enabled);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading maintenance status:', error);
+            }
+        }
+
+        function updateMaintenanceStatus(enabled) {
+            const statusEl = document.getElementById('maintenance-status');
+            if (statusEl) {
+                if (enabled) {
+                    statusEl.innerHTML = '<span class="text-warning">🔴 Site is OFFLINE</span>';
+                } else {
+                    statusEl.innerHTML = '<span class="text-success">🟢 Site is LIVE</span>';
+                }
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white ${
+                type === 'success' ? 'bg-success' : 
+                type === 'warning' ? 'bg-warning' : 
+                type === 'error' ? 'bg-error' : 'bg-accent'
+            }`;
+            notification.style.animation = 'slideInRight 0.3s ease-out';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
 
         // Search and filter functionality
         document.getElementById('product-search').addEventListener('input', displayProducts);

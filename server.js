@@ -464,6 +464,39 @@ app.use('/pages', express.static('pages'));
 // Removed etsy_images static route - now using Cloudinary for image hosting
 app.use('/favicon.ico', express.static('public/favicon.ico'));
 
+// =============================================================================
+// MAINTENANCE MODE MIDDLEWARE
+// =============================================================================
+// This middleware redirects all non-admin traffic to maintenance page
+app.use((req, res, next) => {
+  // Skip maintenance check for these routes
+  const allowedPaths = [
+    '/api/maintenance-mode',
+    '/admin-login.html',
+    '/admin-uploads.html',
+    '/admin.html',
+    '/pages/admin-login.html',
+    '/pages/admin-uploads.html',
+    '/pages/admin.html',
+    '/pages/maintenance.html',
+    '/maintenance.html',
+    '/api/admin',
+    '/css/',
+    '/public/',
+    '/favicon.ico'
+  ];
+
+  // Check if path is allowed
+  const isAllowedPath = allowedPaths.some(path => req.path.startsWith(path) || req.path === path);
+  
+  // If maintenance mode is on and path is not allowed, redirect to maintenance page
+  if (maintenanceMode && !isAllowedPath) {
+    return res.sendFile(path.join(__dirname, 'pages', 'maintenance.html'));
+  }
+  
+  next();
+});
+
 // Serve admin-login.html
 app.get('/admin-login.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'pages', 'admin-login.html'));
@@ -1002,6 +1035,9 @@ async function initializeDatabase() {
 const twoFactorStore = new Map(); // token -> { email, code, expiresAt }
 const passwordResetStore = new Map(); // token -> { email, expiresAt }
 const customerPasswordResetStore = new Map(); // token -> { email, expiresAt }
+
+// Maintenance mode state
+let maintenanceMode = false;
 
 function generateNumericCode(length = 6) {
   const max = Math.pow(10, length) - 1;
@@ -1577,6 +1613,34 @@ app.post('/api/customer/password/reset', validateCustomerPasswordReset, async (r
 // Verify admin token
 app.get('/api/admin/verify', authenticateToken, (req, res) => {
   res.json({ valid: true, user: req.user });
+});
+
+// =============================================================================
+// MAINTENANCE MODE ENDPOINTS
+// =============================================================================
+
+// Get maintenance mode status (admin only)
+app.get('/api/maintenance-mode', authenticateToken, (req, res) => {
+  res.json({ enabled: maintenanceMode });
+});
+
+// Set maintenance mode (admin only)
+app.post('/api/maintenance-mode', authenticateToken, async (req, res) => {
+  try {
+    const { enabled } = req.body;
+    
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({ error: 'enabled must be a boolean' });
+    }
+    
+    maintenanceMode = enabled;
+    logger.info(`${enabled ? '⚠️' : '✅'} Maintenance mode ${enabled ? 'ENABLED' : 'DISABLED'} by admin`);
+    
+    res.json({ success: true, enabled: maintenanceMode });
+  } catch (error) {
+    logger.error('Error setting maintenance mode:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // =============================================================================
