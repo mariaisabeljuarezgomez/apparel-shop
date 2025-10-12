@@ -1248,7 +1248,9 @@
                 const data = await response.json();
                 const order = data.order;
                 const items = data.items || [];
-                console.log('Order details:', order, 'Items:', items);
+                console.log('Order details:', order);
+                console.log('Items:', items);
+                console.log('Shipping amount:', order.shipping_amount, 'Tax amount:', order.tax_amount);
 
                 // Create modal
                 const modal = document.createElement('div');
@@ -1302,22 +1304,32 @@
 
                         <!-- Order Summary -->
                         <div class="border-t border-surface-light pt-4 mb-6 space-y-2">
-                            <div class="flex justify-between text-text-secondary">
-                                <span>Subtotal</span>
-                                <span>$${(parseFloat(order.total_amount || 0) - parseFloat(order.shipping_amount || 0) - parseFloat(order.tax_amount || 0)).toFixed(2)}</span>
-                            </div>
-                            <div class="flex justify-between text-text-secondary">
-                                <span>Shipping</span>
-                                <span>$${parseFloat(order.shipping_amount || 0).toFixed(2)}</span>
-                            </div>
-                            <div class="flex justify-between text-text-secondary">
-                                <span>Tax</span>
-                                <span>$${parseFloat(order.tax_amount || 0).toFixed(2)}</span>
-                            </div>
-                            <div class="flex justify-between text-white font-bold text-lg pt-2 border-t border-surface-light">
-                                <span>Total</span>
-                                <span class="text-highlight">$${parseFloat(order.total_amount || 0).toFixed(2)}</span>
-                            </div>
+                            ${(() => {
+                                // Calculate amounts - handle both string and number formats
+                                const totalAmount = parseFloat(order.total_amount || 0);
+                                const shippingAmount = parseFloat(order.shipping_amount || order.shipping_cost || 0);
+                                const taxAmount = parseFloat(order.tax_amount || order.tax || 0);
+                                const subtotal = totalAmount - shippingAmount - taxAmount;
+                                
+                                return `
+                                    <div class="flex justify-between text-text-secondary">
+                                        <span>Subtotal</span>
+                                        <span>$${subtotal.toFixed(2)}</span>
+                                    </div>
+                                    <div class="flex justify-between text-text-secondary">
+                                        <span>Shipping</span>
+                                        <span>${shippingAmount === 0 ? '<span class="text-success">FREE - Local Pickup</span>' : '$' + shippingAmount.toFixed(2)}</span>
+                                    </div>
+                                    <div class="flex justify-between text-text-secondary">
+                                        <span>Tax</span>
+                                        <span>${taxAmount === 0 ? '<span class="text-text-secondary">$0.00</span>' : '$' + taxAmount.toFixed(2)}</span>
+                                    </div>
+                                    <div class="flex justify-between text-white font-bold text-lg pt-2 border-t border-surface-light">
+                                        <span>Total</span>
+                                        <span class="text-highlight">$${totalAmount.toFixed(2)}</span>
+                                    </div>
+                                `;
+                            })()}
                         </div>
 
                         <!-- Shipping Address -->
