@@ -4254,13 +4254,27 @@ app.get('/oauth/callback', async (req, res) => {
     console.log('📤 Sending success message to popup...');
     res.send(`
       <script>
-        console.log('✅ OAuth success! Closing popup and sending message...');
-        window.opener.postMessage({
-          success: true,
-          user: ${JSON.stringify(userData)},
-          token: '${tokenData.access_token}'
-        }, '*');
-        window.close();
+        console.log('✅ OAuth success! Sending message to parent...');
+        console.log('Parent window:', window.opener);
+        
+        // Send message to parent
+        if (window.opener) {
+          window.opener.postMessage({
+            success: true,
+            user: ${JSON.stringify(userData)},
+            token: '${tokenData.access_token}'
+          }, '*');
+          console.log('✅ Message sent to parent!');
+          
+          // Close popup after a short delay to ensure message is received
+          setTimeout(() => {
+            console.log('🚪 Closing popup now...');
+            window.close();
+          }, 500);
+        } else {
+          console.error('❌ No window.opener found!');
+          alert('Authentication successful! Please close this window and return to the main page.');
+        }
       </script>
     `);
 
