@@ -931,46 +931,21 @@
                     
                     window.addEventListener('message', messageListener);
                     
-                    // Listen for popup to close
-                    let closeCheckAttempts = 0;
+                    // Don't check if popup is closed - just wait for message or timeout
+                    // The popup close detection was causing false positives
+                    console.log('⏳ Waiting for OAuth response (timeout: 5 minutes)...');
+                    
+                    let waitTime = 0;
                     checkClosed = setInterval(() => {
-                        closeCheckAttempts++;
+                        waitTime++;
                         
-                        // Try to access popup location to verify it's actually closed vs just navigating
-                        let popupActuallyClosed = false;
-                        try {
-                            // If we can access the popup and it's closed, this will be true
-                            // If we can't access due to cross-origin, it means it's on Google's page (still open)
-                            popupActuallyClosed = popup.closed;
-                            
-                            // Additional check: if popup.closed is false but we can't access location, it's still open
-                            if (!popupActuallyClosed) {
-                                try {
-                                    const loc = popup.location.href;
-                                    console.log('🔍 Popup still open, at:', loc);
-                                } catch (e) {
-                                    // Cross-origin, still on Google's page
-                                    console.log('🔍 Popup still open (cross-origin)');
-                                }
-                            }
-                        } catch (e) {
-                            // Can't determine, assume it's open
-                            console.log('🔍 Popup status unclear, assuming open');
-                            popupActuallyClosed = false;
-                        }
-                        
-                        // Only act if popup is definitely closed AND we haven't received a message
-                        // OR if it's been more than 5 minutes (timeout)
-                        if (popupActuallyClosed || closeCheckAttempts > 300) {
-                            console.log('🔍 Popup detected as closed. Message received:', messageReceived);
+                        // Only timeout after 5 minutes (300 seconds)
+                        if (waitTime > 300) {
+                            console.log('⏱️ OAuth timeout after 5 minutes');
                             clearInterval(checkClosed);
                             window.removeEventListener('message', messageListener);
-                            // Only show cancelled message if we didn't receive a response
                             if (!messageReceived) {
-                                console.log('⚠️ Showing cancelled message');
-                                showMessage('Google login cancelled', 'info');
-                            } else {
-                                console.log('✅ Message was received, not showing cancelled message');
+                                showMessage('Google login timed out. Please try again.', 'error');
                             }
                         }
                     }, 1000);
