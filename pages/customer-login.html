@@ -901,8 +901,17 @@
 
                     // Listen for messages from popup
                     let messageReceived = false;
+                    let checkClosed; // Declare here so it can be referenced in messageListener
+                    
                     const messageListener = (event) => {
-                        if (event.origin !== window.location.origin) return;
+                        console.log('📨 Message received from:', event.origin);
+                        console.log('📨 Expected origin:', window.location.origin);
+                        console.log('📨 Message data:', event.data);
+                        
+                        if (event.origin !== window.location.origin) {
+                            console.log('⚠️ Origin mismatch, ignoring message');
+                            return;
+                        }
                         
                         if (event.data.success) {
                             // Handle successful OAuth
@@ -910,18 +919,20 @@
                             console.log('✅ Google OAuth successful:', event.data.user);
                             handleGoogleUserData(event.data.user);
                             window.removeEventListener('message', messageListener);
+                            if (checkClosed) clearInterval(checkClosed);
                         } else if (event.data.error) {
                             messageReceived = true;
                             console.error('❌ Google OAuth error:', event.data.error);
                             showMessage(`Google login failed: ${event.data.error}`, 'error');
                             window.removeEventListener('message', messageListener);
+                            if (checkClosed) clearInterval(checkClosed);
                         }
                     };
                     
                     window.addEventListener('message', messageListener);
                     
                     // Listen for popup to close
-                    const checkClosed = setInterval(() => {
+                    checkClosed = setInterval(() => {
                         if (popup.closed) {
                             console.log('🔍 Popup detected as closed. Message received:', messageReceived);
                             clearInterval(checkClosed);
