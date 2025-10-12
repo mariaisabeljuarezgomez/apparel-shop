@@ -4260,22 +4260,27 @@ app.get('/oauth/callback', async (req, res) => {
     );
     
     let customerId;
+    let customerData;
+    
     if (existingCustomer.rows.length > 0) {
-      // Update existing customer
+      // Customer exists - just use their ID
       customerId = existingCustomer.rows[0].id;
-      await pool.query(
-        'UPDATE customers SET google_id = $1, first_name = $2, last_name = $3, profile_picture = $4 WHERE id = $5',
-        [userData.id, userData.given_name, userData.family_name, userData.picture, customerId]
-      );
-      console.log('✅ Existing customer updated');
+      customerData = existingCustomer.rows[0];
+      console.log('✅ Existing customer found');
     } else {
-      // Create new customer
-      const result = await pool.query(
-        'INSERT INTO customers (email, google_id, first_name, last_name, profile_picture, email_verified) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-        [userData.email, userData.id, userData.given_name, userData.family_name, userData.picture, userData.verified_email]
-      );
-      customerId = result.rows[0].id;
-      console.log('✅ New customer created');
+      // Create new customer without google_id column (in case it doesn't exist)
+      try {
+        const result = await pool.query(
+          'INSERT INTO customers (email, first_name, last_name, email_verified) VALUES ($1, $2, $3, $4) RETURNING id',
+          [userData.email, userData.given_name, userData.family_name, userData.verified_email]
+        );
+        customerId = result.rows[0].id;
+        customerData = result.rows[0];
+        console.log('✅ New customer created');
+      } catch (insertError) {
+        console.error('Insert error:', insertError);
+        throw insertError;
+      }
     }
     
     // Generate JWT token for customer
