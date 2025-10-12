@@ -932,8 +932,36 @@
                     window.addEventListener('message', messageListener);
                     
                     // Listen for popup to close
+                    let closeCheckAttempts = 0;
                     checkClosed = setInterval(() => {
-                        if (popup.closed) {
+                        closeCheckAttempts++;
+                        
+                        // Try to access popup location to verify it's actually closed vs just navigating
+                        let popupActuallyClosed = false;
+                        try {
+                            // If we can access the popup and it's closed, this will be true
+                            // If we can't access due to cross-origin, it means it's on Google's page (still open)
+                            popupActuallyClosed = popup.closed;
+                            
+                            // Additional check: if popup.closed is false but we can't access location, it's still open
+                            if (!popupActuallyClosed) {
+                                try {
+                                    const loc = popup.location.href;
+                                    console.log('🔍 Popup still open, at:', loc);
+                                } catch (e) {
+                                    // Cross-origin, still on Google's page
+                                    console.log('🔍 Popup still open (cross-origin)');
+                                }
+                            }
+                        } catch (e) {
+                            // Can't determine, assume it's open
+                            console.log('🔍 Popup status unclear, assuming open');
+                            popupActuallyClosed = false;
+                        }
+                        
+                        // Only act if popup is definitely closed AND we haven't received a message
+                        // OR if it's been more than 5 minutes (timeout)
+                        if (popupActuallyClosed || closeCheckAttempts > 300) {
                             console.log('🔍 Popup detected as closed. Message received:', messageReceived);
                             clearInterval(checkClosed);
                             window.removeEventListener('message', messageListener);
