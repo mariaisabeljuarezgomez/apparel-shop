@@ -889,12 +889,15 @@
                     );
                     
                     console.log('🔍 Popup object:', popup);
+                    console.log('🔍 Popup === window:', popup === window);
                     
-                    if (!popup) {
-                        console.error('❌ Popup was blocked by browser');
+                    if (!popup || popup === window || popup.closed) {
+                        console.error('❌ Popup was blocked by browser or failed to open');
                         showMessage('Popup blocked! Please allow popups for this site and try again.', 'error');
                         return;
                     }
+                    
+                    console.log('✅ Popup opened successfully');
 
                     // Listen for messages from popup
                     let messageReceived = false;

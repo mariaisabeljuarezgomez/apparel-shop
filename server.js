@@ -4233,20 +4233,28 @@ app.get('/oauth/callback', async (req, res) => {
       error: tokenData.error
     });
     
+    console.log('🔍 Checking if access_token exists...');
     if (!tokenData.access_token) {
+      console.error('❌ No access token in response!');
       throw new Error(`Token exchange failed: ${tokenData.error || 'No access token'} - ${tokenData.error_description || ''}`);
     }
 
+    console.log('✅ Access token confirmed, fetching user info...');
     logger.info('✅ Access token received, fetching user info...');
 
     // Get user info from Google
+    console.log('🌐 Fetching user info from Google...');
     const userResponse = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${tokenData.access_token}`);
+    console.log('📡 User info response status:', userResponse.status);
     const userData = await userResponse.json();
+    console.log('✅ User data received:', JSON.stringify(userData));
     logger.info('✅ User data received:', { email: userData.email });
 
     // Send success message to parent window
+    console.log('📤 Sending success message to popup...');
     res.send(`
       <script>
+        console.log('✅ OAuth success! Closing popup and sending message...');
         window.opener.postMessage({
           success: true,
           user: ${JSON.stringify(userData)},
