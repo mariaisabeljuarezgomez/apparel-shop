@@ -2168,7 +2168,7 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                             },
                             body: JSON.stringify({ enabled })
                         });
@@ -2193,7 +2193,7 @@
             try {
                 const response = await fetch('/api/maintenance-mode', {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                     }
                 });
                 if (response.ok) {
