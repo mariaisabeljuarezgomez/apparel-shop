@@ -4250,32 +4250,85 @@ app.get('/oauth/callback', async (req, res) => {
     console.log('✅ User data received:', JSON.stringify(userData));
     logger.info('✅ User data received:', { email: userData.email });
 
-    // Send success message to parent window
-    console.log('📤 Sending success message to popup...');
+    // Create customer account or login in database
+    console.log('💾 Creating/updating customer in database...');
+    
+    // Check if customer exists
+    const existingCustomer = await pool.query(
+      'SELECT * FROM customers WHERE email = $1',
+      [userData.email]
+    );
+    
+    let customerId;
+    if (existingCustomer.rows.length > 0) {
+      // Update existing customer
+      customerId = existingCustomer.rows[0].id;
+      await pool.query(
+        'UPDATE customers SET google_id = $1, first_name = $2, last_name = $3, profile_picture = $4 WHERE id = $5',
+        [userData.id, userData.given_name, userData.family_name, userData.picture, customerId]
+      );
+      console.log('✅ Existing customer updated');
+    } else {
+      // Create new customer
+      const result = await pool.query(
+        'INSERT INTO customers (email, google_id, first_name, last_name, profile_picture, email_verified) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+        [userData.email, userData.id, userData.given_name, userData.family_name, userData.picture, userData.verified_email]
+      );
+      customerId = result.rows[0].id;
+      console.log('✅ New customer created');
+    }
+    
+    // Generate JWT token for customer
+    const customerToken = jwt.sign(
+      { id: customerId, email: userData.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    
+    console.log('🔑 Customer JWT token generated');
+    
+    // Send success page with localStorage storage
+    console.log('📤 Sending success page to popup...');
     res.send(`
-      <script>
-        console.log('✅ OAuth success! Sending message to parent...');
-        console.log('Parent window:', window.opener);
-        
-        // Send message to parent
-        if (window.opener) {
-          window.opener.postMessage({
-            success: true,
-            user: ${JSON.stringify(userData)},
-            token: '${tokenData.access_token}'
-          }, '*');
-          console.log('✅ Message sent to parent!');
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Login Successful</title>
+      </head>
+      <body>
+        <script>
+          console.log('✅ OAuth success! Storing token in localStorage...');
           
-          // Close popup after a short delay to ensure message is received
-          setTimeout(() => {
-            console.log('🚪 Closing popup now...');
-            window.close();
-          }, 500);
-        } else {
-          console.error('❌ No window.opener found!');
-          alert('Authentication successful! Please close this window and return to the main page.');
-        }
-      </script>
+          // Store token and customer data in localStorage
+          localStorage.setItem('customerToken', '${customerToken}');
+          localStorage.setItem('customerData', ${JSON.stringify(JSON.stringify({
+            id: customerId,
+            email: userData.email,
+            firstName: userData.given_name,
+            lastName: userData.family_name,
+            picture: userData.picture
+          }))});
+          
+          console.log('✅ Token stored in localStorage!');
+          console.log('🚪 Closing popup and redirecting parent...');
+          
+          // Try to redirect parent OR close popup
+          try {
+            if (window.opener && !window.opener.closed) {
+              window.opener.location.href = '/pages/account.html';
+              window.close();
+            } else {
+              // Fallback: redirect this window
+              window.location.href = '/pages/account.html';
+            }
+          } catch (e) {
+            console.error('Error redirecting:', e);
+            // Last resort: just redirect this window
+            window.location.href = '/pages/account.html';
+          }
+        </script>
+      </body>
+      </html>
     `);
 
   } catch (error) {
