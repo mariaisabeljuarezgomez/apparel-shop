@@ -6848,19 +6848,19 @@ app.post('/api/paypal/create-order', authenticateCustomer, async (req, res) => {
         custom_id: order.id.toString(), // This is crucial for webhook identification
         amount: {
           currency_code: 'USD',
-          value: total.toFixed(2),
+          value: finalTotal.toFixed(2),
           breakdown: {
             item_total: {
               currency_code: 'USD',
-              value: subtotal.toFixed(2)
+              value: finalSubtotal.toFixed(2)
             },
             shipping: {
               currency_code: 'USD',
-              value: shipping.toFixed(2)
+              value: finalShipping.toFixed(2)
             },
             tax_total: {
               currency_code: 'USD',
-              value: tax.toFixed(2)
+              value: finalTax.toFixed(2)
             }
           }
         },
@@ -6902,7 +6902,7 @@ app.post('/api/paypal/create-order', authenticateCustomer, async (req, res) => {
     res.json({ 
       id: response.result.id,
       orderNumber: orderNumber,
-      total: total
+      total: finalTotal
     });
   } catch (error) {
     console.error('PayPal create order error:', error);
