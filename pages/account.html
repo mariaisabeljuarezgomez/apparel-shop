@@ -1230,7 +1230,8 @@
                 // Fetch order details from API
                 const token = localStorage.getItem('customerToken');
                 if (!token) {
-                    showMessage('Please log in to view order details', 'error');
+                    console.error('Please log in to view order details');
+                    alert('Please log in to view order details');
                     return;
                 }
 
@@ -1303,19 +1304,19 @@
                         <div class="border-t border-surface-light pt-4 mb-6 space-y-2">
                             <div class="flex justify-between text-text-secondary">
                                 <span>Subtotal</span>
-                                <span>$${(order.total_amount - order.shipping_amount - order.tax_amount || 0).toFixed(2)}</span>
+                                <span>$${(parseFloat(order.total_amount || 0) - parseFloat(order.shipping_amount || 0) - parseFloat(order.tax_amount || 0)).toFixed(2)}</span>
                             </div>
                             <div class="flex justify-between text-text-secondary">
                                 <span>Shipping</span>
-                                <span>$${(order.shipping_amount || 0).toFixed(2)}</span>
+                                <span>$${parseFloat(order.shipping_amount || 0).toFixed(2)}</span>
                             </div>
                             <div class="flex justify-between text-text-secondary">
                                 <span>Tax</span>
-                                <span>$${(order.tax_amount || 0).toFixed(2)}</span>
+                                <span>$${parseFloat(order.tax_amount || 0).toFixed(2)}</span>
                             </div>
                             <div class="flex justify-between text-white font-bold text-lg pt-2 border-t border-surface-light">
                                 <span>Total</span>
-                                <span class="text-highlight">$${(order.total_amount || 0).toFixed(2)}</span>
+                                <span class="text-highlight">$${parseFloat(order.total_amount || 0).toFixed(2)}</span>
                             </div>
                         </div>
 
@@ -1375,7 +1376,7 @@
 
             } catch (error) {
                 console.error('Error fetching order details:', error);
-                showMessage('Failed to load order details', 'error');
+                alert('Failed to load order details: ' + error.message);
             }
         }
 
