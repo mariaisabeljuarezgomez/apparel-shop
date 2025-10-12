@@ -1459,37 +1459,56 @@
             orderItemsContainer.innerHTML = orderItemsHTML;
 
             // Calculate tiered shipping using backend API
-            console.log('🚚 CHECKOUT: Calling tiered shipping API...');
+            console.log('🚚 CHECKOUT: Calculating shipping...');
             let shipping = 4.50; // Default fallback
             
-            try {
-                const token = localStorage.getItem('customerToken');
-                console.log('🔑 CHECKOUT: Using customerToken for shipping API');
-                const response = await fetch('/api/cart/calculate-shipping', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        items: cartData.map(item => ({
-                            product_id: item.product_id,
-                            quantity: item.quantity
-                        }))
-                    })
-                });
-                
-                console.log('📡 CHECKOUT: Shipping API response status:', response.status);
-                if (response.ok) {
-                    const data = await response.json();
-                    shipping = parseFloat(data.shipping) || 4.50;
-                    console.log('✅ CHECKOUT: Tiered shipping calculated:', shipping);
-                } else {
-                    console.warn('⚠️ CHECKOUT: Shipping API failed with status', response.status, '- using fallback:', shipping);
+            // Check if customer selected local pickup
+            const selectedShippingMethod = sessionStorage.getItem('selectedShippingMethod');
+            const selectedShippingCost = sessionStorage.getItem('selectedShippingCost');
+            
+            console.log('🚚 CHECKOUT: Shipping method from session:', selectedShippingMethod, 'Cost:', selectedShippingCost);
+            
+            // If customer explicitly chose local pickup, use FREE shipping
+            if (selectedShippingMethod === 'pickup') {
+                shipping = 0;
+                console.log('🚚 CHECKOUT: Customer chose local pickup - FREE shipping');
+            } 
+            // If customer chose standard shipping and we have the cost, use it
+            else if (selectedShippingMethod === 'standard' && selectedShippingCost !== null) {
+                shipping = parseFloat(selectedShippingCost);
+                console.log('🚚 CHECKOUT: Customer chose standard shipping:', shipping);
+            } 
+            // Otherwise, call API to calculate tiered shipping
+            else {
+                try {
+                    const token = localStorage.getItem('customerToken');
+                    console.log('🔑 CHECKOUT: Using customerToken for shipping API');
+                    const response = await fetch('/api/cart/calculate-shipping', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            items: cartData.map(item => ({
+                                product_id: item.product_id,
+                                quantity: item.quantity
+                            }))
+                        })
+                    });
+                    
+                    console.log('📡 CHECKOUT: Shipping API response status:', response.status);
+                    if (response.ok) {
+                        const data = await response.json();
+                        shipping = parseFloat(data.shipping) || 4.50;
+                        console.log('✅ CHECKOUT: Tiered shipping calculated:', shipping);
+                    } else {
+                        console.warn('⚠️ CHECKOUT: Shipping API failed with status', response.status, '- using fallback:', shipping);
+                    }
+                } catch (error) {
+                    console.error('❌ CHECKOUT: Error calculating shipping:', error);
+                    console.log('🚚 CHECKOUT: Using fallback shipping:', shipping);
                 }
-            } catch (error) {
-                console.error('❌ CHECKOUT: Error calculating shipping:', error);
-                console.log('🚚 CHECKOUT: Using fallback shipping:', shipping);
             }
             
             // Get tax rate based on shipping address state
