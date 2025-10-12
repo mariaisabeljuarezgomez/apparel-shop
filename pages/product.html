@@ -1898,46 +1898,60 @@
             });
         }
         
-        // Show login prompt function
-        function showLoginPrompt(message = 'Please log in to continue') {
-            const loginPrompt = document.createElement('div');
-            loginPrompt.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-            loginPrompt.innerHTML = `
-                <div class="glass-card rounded-2xl p-8 max-w-md w-full mx-4">
-                    <h2 class="font-orbitron text-2xl font-bold text-white mb-4">Login Required</h2>
+        // Show custom modal (reusable)
+        function showCustomModal(title, message, buttons = [{ text: 'OK', primary: true, action: null }]) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in';
+            
+            const buttonsHTML = buttons.map((btn, index) => {
+                const btnClass = btn.primary 
+                    ? 'btn-primary w-full' 
+                    : 'border border-highlight text-highlight w-full py-2 rounded-lg hover:bg-highlight hover:text-black transition-all duration-300';
+                return `<button id="modalBtn${index}" class="${btnClass}">${btn.text}</button>`;
+            }).join('');
+            
+            modal.innerHTML = `
+                <div class="glass-card rounded-2xl p-8 max-w-md w-full mx-4 animate-scale-in">
+                    <h2 class="font-orbitron text-2xl font-bold text-white mb-4">${title}</h2>
                     <p class="text-white mb-6">${message}</p>
-                    <div class="space-y-4">
-                        <button id="loginBtn" class="btn-primary w-full">LOG IN</button>
-                        <button id="createAccountBtn" class="border border-highlight text-highlight w-full py-2 rounded-lg hover:bg-highlight hover:text-black transition-all duration-300">Create Account</button>
-                        <button id="cancelLoginBtn" class="text-white w-full py-2 hover:text-highlight transition-colors">Cancel</button>
+                    <div class="space-y-3">
+                        ${buttonsHTML}
                     </div>
                 </div>
             `;
             
-            document.body.appendChild(loginPrompt);
+            document.body.appendChild(modal);
             
-            // Add event listeners
-            const loginBtn = loginPrompt.querySelector('#loginBtn');
-            const createAccountBtn = loginPrompt.querySelector('#createAccountBtn');
-            const cancelBtn = loginPrompt.querySelector('#cancelLoginBtn');
+            // Add event listeners for buttons
+            buttons.forEach((btn, index) => {
+                const btnElement = modal.querySelector(`#modalBtn${index}`);
+                if (btnElement) {
+                    btnElement.addEventListener('click', () => {
+                        modal.remove();
+                        if (btn.action && typeof btn.action === 'function') {
+                            btn.action();
+                        }
+                    });
+                }
+            });
             
-            if (loginBtn) {
-                loginBtn.addEventListener('click', function() {
-                    window.location.href = 'customer-login.html';
-                });
-            }
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
             
-            if (createAccountBtn) {
-                createAccountBtn.addEventListener('click', function() {
-                    window.location.href = 'customer-login.html';
-                });
-            }
-            
-            if (cancelBtn) {
-                cancelBtn.addEventListener('click', function() {
-                    loginPrompt.remove();
-                });
-            }
+            return modal;
+        }
+
+        // Show login prompt function
+        function showLoginPrompt(message = 'Please log in to continue') {
+            return showCustomModal('Login Required', message, [
+                { text: 'LOG IN', primary: true, action: () => window.location.href = 'customer-login.html' },
+                { text: 'Create Account', primary: false, action: () => window.location.href = 'customer-login.html' },
+                { text: 'Cancel', primary: false, action: null }
+            ]);
         }
 
         // Add to Cart functionality
@@ -1965,7 +1979,9 @@
                     // Get selected size
                     const selectedSize = document.querySelector('.size-option.selected');
                     if (!selectedSize) {
-                        alert('Please select a size');
+                        showCustomModal('Size Required', 'Please select a size before adding to cart', [
+                            { text: 'OK', primary: true, action: null }
+                        ]);
                         return;
                     }
                     
@@ -2087,7 +2103,10 @@
                     
                     const result = await response.json();
                     console.log('✅ Item added to cart successfully:', result);
-                    alert('Item added to cart successfully!');
+                    showCustomModal('Success!', 'Item added to cart successfully!', [
+                        { text: 'Continue Shopping', primary: false, action: null },
+                        { text: 'View Cart', primary: true, action: () => window.location.href = 'cart.html' }
+                    ]);
                     
                     // Update cart counter
                     console.log('🔄 Updating cart counter...');
@@ -2098,7 +2117,9 @@
                     
                 } catch (error) {
                     console.error('Error adding item to cart:', error);
-                    alert('Error adding item to cart: ' + error.message);
+                    showCustomModal('Error', 'Error adding item to cart: ' + error.message, [
+                        { text: 'OK', primary: true, action: null }
+                    ]);
                 }
             });
         }
@@ -2151,15 +2172,16 @@
                     // Check if user is logged in
                     const token = localStorage.getItem('customerToken');
                     if (!token) {
-                        alert('Please log in to purchase items');
-                        window.location.href = 'customer-login.html';
+                        showLoginPrompt('You need to log in to purchase items');
                         return;
                     }
                     
                     // Get selected size
                     const selectedSize = document.querySelector('.size-option.selected');
                     if (!selectedSize) {
-                        alert('Please select a size');
+                        showCustomModal('Size Required', 'Please select a size before purchasing', [
+                            { text: 'OK', primary: true, action: null }
+                        ]);
                         return;
                     }
                     
@@ -2261,7 +2283,9 @@
                     
                 } catch (error) {
                     console.error('Error with Buy Now:', error);
-                    alert('Error processing purchase: ' + error.message);
+                    showCustomModal('Error', 'Error processing purchase: ' + error.message, [
+                        { text: 'OK', primary: true, action: null }
+                    ]);
                 }
             });
         }
