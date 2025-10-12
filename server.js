@@ -432,6 +432,7 @@ app.use(helmet({
         "'sha256-/l6w0vnC+DN7tMFOiJiEWqLyy8uJoFwM6E0yzhKXRRQ='",
         "'sha256-2rvfFrggTCtyF5WOiTri1gDS8Boibj4Njn0e+VCBmDI='",
         "'sha256-7s2SeAiBOyYK/9QWYmQ6xelnONAgkw/omxu2Lca+qVM='", // navigateToCart() on homepage
+        "'sha256-BGWrTcnAPwBJKI8msx078fUMzMfB8X8CZo9mUI4gX0g='", // handleImageError() on product pages
         // Account page inline handlers
         "'sha256-PKRvKFkizSxInmWFkkT8j+M2FPJu9qavscdc3L45zsI='",
         "'sha256-JY+GbUQ8D66X3/4hxO8N5B+9fw0RydFc2YQ2fIjOS8I='",
