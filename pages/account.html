@@ -1223,9 +1223,144 @@
             return statusMap[status?.toLowerCase()] || 'Pending';
         }
 
-        function viewOrderDetails(orderId) {
+        async function viewOrderDetails(orderId) {
             console.log('Viewing order details for:', orderId);
-            // Implement order details modal
+            
+            try {
+                // Fetch order details from API
+                const token = localStorage.getItem('customerToken');
+                if (!token) {
+                    showMessage('Please log in to view order details', 'error');
+                    return;
+                }
+
+                const response = await fetch(`/api/orders/${orderId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch order details');
+                }
+
+                const order = await response.json();
+                console.log('Order details:', order);
+
+                // Create modal
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+                modal.style.overflowY = 'auto';
+                
+                // Format order items
+                const itemsHTML = order.items ? order.items.map(item => `
+                    <div class="flex justify-between items-start py-3 border-b border-surface-light">
+                        <div class="flex-1">
+                            <p class="text-white font-medium">${item.product_name || 'Product'}</p>
+                            <p class="text-text-secondary text-sm">
+                                Size: ${item.size || 'N/A'} | 
+                                Color: ${item.color || 'N/A'} | 
+                                Qty: ${item.quantity || 1}
+                            </p>
+                            ${item.custom_input ? `<p class="text-text-secondary text-xs mt-1">Custom: ${JSON.stringify(item.custom_input)}</p>` : ''}
+                        </div>
+                        <p class="text-highlight font-medium ml-4">$${((item.unit_price || 0) * (item.quantity || 1)).toFixed(2)}</p>
+                    </div>
+                `).join('') : '<p class="text-text-secondary">No items found</p>';
+
+                const statusBadgeClass = {
+                    'pending': 'bg-warning bg-opacity-20 text-warning',
+                    'processing': 'bg-blue-500 bg-opacity-20 text-blue-400',
+                    'shipped': 'bg-accent bg-opacity-20 text-accent',
+                    'delivered': 'bg-success bg-opacity-20 text-success',
+                    'cancelled': 'bg-error bg-opacity-20 text-error'
+                }[order.status?.toLowerCase()] || 'bg-surface-light text-text-secondary';
+
+                modal.innerHTML = `
+                    <div class="glass-card rounded-2xl p-8 max-w-2xl w-full mx-4 my-8">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h2 class="font-orbitron text-2xl font-bold text-white mb-2">Order Details</h2>
+                                <p class="text-text-secondary">Order #${order.order_number || orderId}</p>
+                                <p class="text-text-secondary text-sm">${new Date(order.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-sm font-medium ${statusBadgeClass}">
+                                ${(order.status || 'pending').toUpperCase()}
+                            </span>
+                        </div>
+
+                        <!-- Order Items -->
+                        <div class="mb-6">
+                            <h3 class="text-white font-semibold mb-3">Items</h3>
+                            <div class="space-y-2">
+                                ${itemsHTML}
+                            </div>
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="border-t border-surface-light pt-4 mb-6 space-y-2">
+                            <div class="flex justify-between text-text-secondary">
+                                <span>Subtotal</span>
+                                <span>$${(order.total_amount - order.shipping_amount - order.tax_amount || 0).toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between text-text-secondary">
+                                <span>Shipping</span>
+                                <span>$${(order.shipping_amount || 0).toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between text-text-secondary">
+                                <span>Tax</span>
+                                <span>$${(order.tax_amount || 0).toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between text-white font-bold text-lg pt-2 border-t border-surface-light">
+                                <span>Total</span>
+                                <span class="text-highlight">$${(order.total_amount || 0).toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <!-- Shipping Address -->
+                        ${order.shipping_address ? `
+                            <div class="mb-6">
+                                <h3 class="text-white font-semibold mb-2">Shipping Address</h3>
+                                <div class="text-text-secondary text-sm">
+                                    <p>${order.shipping_address.street_address || ''}</p>
+                                    ${order.shipping_address.apartment ? `<p>${order.shipping_address.apartment}</p>` : ''}
+                                    <p>${order.shipping_address.city || ''}, ${order.shipping_address.state || ''} ${order.shipping_address.postal_code || ''}</p>
+                                    <p>${order.shipping_address.country || 'United States'}</p>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- Payment Info -->
+                        ${order.payment_method ? `
+                            <div class="mb-6">
+                                <h3 class="text-white font-semibold mb-2">Payment Method</h3>
+                                <p class="text-text-secondary text-sm">${order.payment_method === 'paypal' ? 'PayPal' : order.payment_method}</p>
+                            </div>
+                        ` : ''}
+
+                        <!-- Close Button -->
+                        <button id="closeOrderModal" class="btn-primary w-full mt-4">
+                            Close
+                        </button>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+
+                // Close modal handlers
+                const closeBtn = modal.querySelector('#closeOrderModal');
+                closeBtn.addEventListener('click', () => modal.remove());
+                
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error fetching order details:', error);
+                showMessage('Failed to load order details', 'error');
+            }
         }
 
         function showAddAddressModal() {
