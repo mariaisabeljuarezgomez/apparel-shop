@@ -1234,7 +1234,7 @@
                     return;
                 }
 
-                const response = await fetch(`/api/orders/${orderId}`, {
+                const response = await fetch(`/api/customer/orders/${orderId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -1244,8 +1244,10 @@
                     throw new Error('Failed to fetch order details');
                 }
 
-                const order = await response.json();
-                console.log('Order details:', order);
+                const data = await response.json();
+                const order = data.order;
+                const items = data.items || [];
+                console.log('Order details:', order, 'Items:', items);
 
                 // Create modal
                 const modal = document.createElement('div');
@@ -1253,7 +1255,7 @@
                 modal.style.overflowY = 'auto';
                 
                 // Format order items
-                const itemsHTML = order.items ? order.items.map(item => `
+                const itemsHTML = items && items.length > 0 ? items.map(item => `
                     <div class="flex justify-between items-start py-3 border-b border-surface-light">
                         <div class="flex-1">
                             <p class="text-white font-medium">${item.product_name || 'Product'}</p>
@@ -1318,17 +1320,31 @@
                         </div>
 
                         <!-- Shipping Address -->
-                        ${order.shipping_address ? `
-                            <div class="mb-6">
-                                <h3 class="text-white font-semibold mb-2">Shipping Address</h3>
-                                <div class="text-text-secondary text-sm">
-                                    <p>${order.shipping_address.street_address || ''}</p>
-                                    ${order.shipping_address.apartment ? `<p>${order.shipping_address.apartment}</p>` : ''}
-                                    <p>${order.shipping_address.city || ''}, ${order.shipping_address.state || ''} ${order.shipping_address.postal_code || ''}</p>
-                                    <p>${order.shipping_address.country || 'United States'}</p>
-                                </div>
-                            </div>
-                        ` : ''}
+                        ${(() => {
+                            let address = order.shipping_address;
+                            // Parse if it's a JSON string
+                            if (typeof address === 'string') {
+                                try {
+                                    address = JSON.parse(address);
+                                } catch (e) {
+                                    address = null;
+                                }
+                            }
+                            if (address && typeof address === 'object') {
+                                return `
+                                    <div class="mb-6">
+                                        <h3 class="text-white font-semibold mb-2">Shipping Address</h3>
+                                        <div class="text-text-secondary text-sm">
+                                            <p>${address.street_address || address.streetAddress || ''}</p>
+                                            ${address.apartment ? `<p>${address.apartment}</p>` : ''}
+                                            <p>${address.city || ''}, ${address.state || ''} ${address.postal_code || address.postalCode || address.zip || ''}</p>
+                                            <p>${address.country || 'United States'}</p>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            return '';
+                        })()}
 
                         <!-- Payment Info -->
                         ${order.payment_method ? `
