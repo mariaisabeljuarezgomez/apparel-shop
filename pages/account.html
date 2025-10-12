@@ -951,7 +951,7 @@
                                     <p class="text-text-secondary text-sm">
                                         ${order.items ? order.items.length : 0} item(s)
                                     </p>
-                                    <button class="text-highlight hover:text-primary transition-colors font-medium" onclick="viewOrderDetails(${order.id})">
+                                    <button class="view-order-details-btn text-highlight hover:text-primary transition-colors font-medium" data-order-id="${order.id}">
                                         View Details
                                     </button>
                                 </div>
@@ -961,6 +961,14 @@
                 }).join('');
                 
                 ordersList.innerHTML = ordersHTML;
+                
+                // Add event listeners to all View Details buttons using event delegation
+                ordersList.querySelectorAll('.view-order-details-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const orderId = parseInt(this.getAttribute('data-order-id'));
+                        viewOrderDetails(orderId);
+                    });
+                });
 
             } catch (error) {
                 console.error('Error loading orders:', error);
