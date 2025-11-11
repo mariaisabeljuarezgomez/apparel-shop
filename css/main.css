@@ -2764,12 +2764,20 @@ code, .mono {
   opacity: 1;
 }
 
+.opacity-25{
+  opacity: 0.25;
+}
+
 .opacity-30{
   opacity: 0.3;
 }
 
 .opacity-50{
   opacity: 0.5;
+}
+
+.opacity-75{
+  opacity: 0.75;
 }
 
 .shadow-2xl{
@@ -2903,6 +2911,11 @@ code, .mono {
 .duration-500{
   -webkit-transition-duration: 500ms;
           transition-duration: 500ms;
+}
+
+.ease-in{
+  -webkit-transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+          transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
 }
 
 .ease-in-out{
@@ -3268,6 +3281,11 @@ code, .mono {
 .peer:checked ~ .peer-checked\:bg-accent{
   --tw-bg-opacity: 1;
   background-color: rgb(0 188 212 / var(--tw-bg-opacity, 1));
+}
+
+.peer:checked ~ .peer-checked\:bg-warning{
+  --tw-bg-opacity: 1;
+  background-color: rgb(245 158 11 / var(--tw-bg-opacity, 1));
 }
 
 .peer:checked ~ .peer-checked\:after\:translate-x-full::after{
