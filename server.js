@@ -1040,6 +1040,28 @@ async function initializeDatabase() {
       )
     `);
 
+    // Create categories table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) UNIQUE NOT NULL,
+        description TEXT,
+        display_order INTEGER DEFAULT 1,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Create indexes for performance
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_categories_name ON categories (name)
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_categories_display_order ON categories (display_order)
+    `);
+
+    logger.info('✅ Categories table initialized');
+
     // Skip inserting sample products - we want to start fresh
     logger.info('📦 Products table initialized - ready for fresh product uploads');
 
